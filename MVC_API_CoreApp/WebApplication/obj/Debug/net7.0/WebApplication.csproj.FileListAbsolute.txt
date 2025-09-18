@@ -1,0 +1,8 @@
+D:\Codes\C#\Web-Technologies-hard-work\MVC_API_CoreApp\WebApplication\obj\Debug\net7.0\WebApplication.csproj.AssemblyReference.cache
+D:\Codes\C#\Web-Technologies-hard-work\MVC_API_CoreApp\WebApplication\obj\Debug\net7.0\WebApplication.GeneratedMSBuildEditorConfig.editorconfig
+D:\Codes\C#\Web-Technologies-hard-work\MVC_API_CoreApp\WebApplication\obj\Debug\net7.0\WebApplication.AssemblyInfoInputs.cache
+D:\Codes\C#\Web-Technologies-hard-work\MVC_API_CoreApp\WebApplication\obj\Debug\net7.0\WebApplication.AssemblyInfo.cs
+D:\Codes\C#\Web-Technologies-hard-work\MVC_API_CoreApp\WebApplication\obj\Debug\net7.0\WebApplication.csproj.CoreCompileInputs.cache
+D:\Codes\C#\Web-Technologies-hard-work\MVC_API_CoreApp\WebApplication\obj\Debug\net7.0\WebApplication.MvcApplicationPartsAssemblyInfo.cs
+D:\Codes\C#\Web-Technologies-hard-work\MVC_API_CoreApp\WebApplication\obj\Debug\net7.0\WebApplication.MvcApplicationPartsAssemblyInfo.cache
+D:\Codes\C#\Web-Technologies-hard-work\MVC_API_CoreApp\WebApplication\obj\Debug\net7.0\WebApplication.sourcelink.json

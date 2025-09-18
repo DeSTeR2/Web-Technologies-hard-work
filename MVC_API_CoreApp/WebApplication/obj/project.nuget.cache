@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "K4r/8lqgDjI=",
+  "success": true,
+  "projectFilePath": "D:\\Codes\\C#\\Web-Technologies-hard-work\\MVC_API_CoreApp\\WebApplication\\WebApplication.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\38095\\.nuget\\packages\\microsoft.extensions.apidescription.server\\8.0.0\\microsoft.extensions.apidescription.server.8.0.0.nupkg.sha512",
+    "C:\\Users\\38095\\.nuget\\packages\\microsoft.openapi\\1.6.25\\microsoft.openapi.1.6.25.nupkg.sha512",
+    "C:\\Users\\38095\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.22.1\\microsoft.visualstudio.azure.containers.tools.targets.1.22.1.nupkg.sha512",
+    "C:\\Users\\38095\\.nuget\\packages\\swashbuckle.aspnetcore\\9.0.4\\swashbuckle.aspnetcore.9.0.4.nupkg.sha512",
+    "C:\\Users\\38095\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\9.0.4\\swashbuckle.aspnetcore.swagger.9.0.4.nupkg.sha512",
+    "C:\\Users\\38095\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\9.0.4\\swashbuckle.aspnetcore.swaggergen.9.0.4.nupkg.sha512",
+    "C:\\Users\\38095\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\9.0.4\\swashbuckle.aspnetcore.swaggerui.9.0.4.nupkg.sha512"
+  ],
+  "logs": []
+}
