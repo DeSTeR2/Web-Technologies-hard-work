@@ -3,14 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using NUnit.Framework;
 using ProjectInfrastructure.Context;
 using ProjectInfrastructure.Models;
 using ProjectMVC.Controllers;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
-    
+
 namespace TestProject1
 {
     public class LeaderboardsControllerTests
