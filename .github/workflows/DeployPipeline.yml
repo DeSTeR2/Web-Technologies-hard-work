@@ -46,7 +46,7 @@ jobs:
     - name: Build and push Docker image
       run: |
         IMAGE_TAG=${{ github.sha }}
-        docker build -t ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG .
+        docker build WORKING_DIRECTORY -t ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG .
         docker push ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG
 
   deploy: 
