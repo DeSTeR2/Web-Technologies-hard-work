@@ -1,0 +1,436 @@
+<style>
+    /* Your CSS styles as provided */
+    .leaderboards-container {
+        background-color: #1a1a1a;
+        border-radius: 8px;
+        padding: 30px 25px;
+        margin: 40px auto;
+        max-width: 420px;
+        border: 2px solid #333;
+        box-shadow: 0 0 10px #444;
+        color: #ddd;
+        font-family: 'Courier New', monospace;
+        text-align: left;
+    }
+    
+    .leaderboard-item {
+        background-color: #0d0d0d;
+        border: 1px solid #555;
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 14px;
+        color: #ddd;
+        font-size: 1rem;
+        cursor: default;
+        transition: background-color 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .leaderboard-item:hover {
+        background-color: #222;
+    }
+    
+    .no-leaderboards-msg {
+        font-size: 1.2rem;
+        color: #bbb;
+        text-align: center;
+        margin: 40px 0;
+        font-family: 'Courier New', monospace;
+        text-shadow: 0 0 3px #666;
+    }
+    
+    .create-leaderboard-btn-inline {
+        margin-top: 20px;
+        padding: 10px 30px;
+        font-size: 1.1rem;
+        background-color: #222;
+        border: 2px solid #888;
+        color: #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        width: auto;
+        display: inline-block;
+        text-shadow: 0 0 3px #aaa;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    
+    .create-leaderboard-btn-inline:hover {
+        background-color: #333;
+        border-color: #ccc;
+    }
+    
+    .create-leaderboard-btn {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background-color: #222;
+        color: #ddd;
+        border: 2px solid #888;
+        border-radius: 8px;
+        padding: 10px 30px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        box-shadow: 0 0 10px #444;
+        text-shadow: 0 0 3px #aaa;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .create-leaderboard-btn:hover {
+        background-color: #333;
+        border-color: #ccc;
+    }
+    
+    h2 {
+        font-family: 'Courier New', monospace;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        color: #ddd;
+        text-shadow: 0 0 5px #fff;
+        text-align: center;
+    }
+    
+    h3 {
+        font-family: 'Courier New', monospace;
+        color: #ddd;
+        margin-bottom: 15px;
+    }
+    
+    .board-name {
+        flex-grow: 1;
+        cursor: default;
+    }
+    
+    .edit-btn,
+    .save-btn,
+    .cancel-btn,
+    .manage-btn {
+        background-color: #222;
+        border: 2px solid #888;
+        border-radius: 6px;
+        color: #ddd;
+        cursor: pointer;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        text-shadow: 0 0 3px #aaa;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        margin-left: 5px;
+    }
+    
+    .edit-btn:hover,
+    .save-btn:hover,
+    .cancel-btn:hover,
+    .manage-btn:hover {
+        background-color: #333;
+        border-color: #ccc;
+    }
+</style>
+
+@model IEnumerable<ProjectInfrastructure.Models.LeaderboardRecordModel>
+
+@{
+    ViewData["Title"] = "Leaderboard Records";
+    var leaderboardId = ViewData["LeaderboardId"]?.ToString() ?? "";
+}
+
+<h2>Leaderboard Records</h2>
+
+@if (!Model.Any())
+{
+    <p class="no-leaderboards-msg">No leaderboard records found.</p>
+}
+else
+{
+    <form name="sortingForm" onsubmit="sortRecords(event)">
+        <input type="hidden" name="leaderboardId" value="@leaderboardId" />
+        <select name="sortOrder" class="create-leaderboard-btn-inline">
+            <option value="Value">Sort by...</option>
+            <option value="Value">Value</option>
+            <option value="Updated">Updated Time</option>
+            <option value="Name">Name</option>
+        </select>
+
+        <select name="sortDirection" class="create-leaderboard-btn-inline">
+            <option value="Descending">Descending</option>
+            <option value="Ascending">Ascending</option>
+        </select>
+
+        <input type="number" name="take" placeholder="Number of records" class="create-leaderboard-btn-inline" min="2"/>
+        <button type="submit" class="create-leaderboard-btn-inline">Sort</button>
+    </form>
+
+
+    <div class="records-scroll">
+        <div class="records-wrapper" id ="records-wrapper-id">
+            @foreach (var record in Model)
+            {
+                <div class="leaderboard-item">
+                    <span id="record-database-id" style="display: none;">@record.Id</span>
+                    <span class="record-id">№@record.Place</span>
+                    <input type="text" class="edit-name" value="@record.Name" readonly/>
+                    <input type="number" class="edit-value" value="@record.Value" readonly/>
+                    <button class="edit-btn edit-toggle">Edit</button>
+                    <button class="save-btn" style="display:none;">Save</button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div id="creationPanel" style="display:none; margin-top:20px; background:#222; padding:20px; border-radius:8px;">
+    <h3>Create New Record</h3>
+    <label for="newName">Name:</label><br/>
+    <input type="text" id="newName" name="newName" style="width: 100%; padding: 8px; margin-bottom: 10px;"/><br/>
+    <label for="newValue">Score:</label><br/>
+    <input type="number" id="newValue" name="newValue" style="width: 100%; padding: 8px; margin-bottom: 10px;"/><br/>
+    <button id="addRecordBtn" class="create-leaderboard-btn-inline">Add</button>
+    <button id="cancelCreateBtn" class="create-leaderboard-btn-inline" style="background:#555; margin-left:10px;">
+        Cancel
+    </button>
+    <p id="creationMessage" style="color:#f88; margin-top:10px;"></p>
+</div>
+
+<button id="openCreatePanelBtn" class="create-leaderboard-btn-inline">Add New Record</button>
+
+<style>
+    .editable {
+        background-color: #333;
+        border: 1px solid #666;
+        color: #fff;
+        padding: 3px;
+    }
+
+    .records-scroll {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #444;
+        padding: 10px;
+        background: #1a1a1a;
+        border-radius: 8px;
+    }
+
+    .records-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .leaderboard-item {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: #2a2a2a;
+        padding: 10px;
+        border-radius: 8px;
+        color: white;
+    }
+    
+    .leaderboard-item.editing {
+    outline: 2px solid #4caf50;
+    background-color: #1e2a1e;
+}
+
+    .edit-name, .edit-value {
+        background: #333;
+        border: 1px solid #555;
+        color: white;
+        padding: 5px;
+    }
+
+    .records-scroll::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .records-scroll::-webkit-scrollbar-track {
+        background: #1a1a1a;
+    }
+
+    .records-scroll::-webkit-scrollbar-thumb {
+        background: #555;
+        border-radius: 5px;
+    }
+
+    .records-scroll::-webkit-scrollbar-thumb:hover {
+        background: #888;
+    }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const leaderboardId = '@leaderboardId';
+
+    const creationPanel = document.getElementById('creationPanel');
+    const openCreatePanelBtn = document.getElementById('openCreatePanelBtn');
+    const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+
+    openCreatePanelBtn.addEventListener('click', () => showCreationPanel());
+    cancelCreateBtn.addEventListener('click', () => hideCreationPanel());
+
+    function sortRecords(event) {
+        event.preventDefault();
+
+        const form = document.forms['sortingForm'];
+        const leaderboardId = form.leaderboardId.value;
+        const sortBy = form.sortOrder.value;
+        const direction = form.sortDirection.value;
+        const take = form.take.value ? parseInt(form.take.value) : null;
+
+        $.ajax({
+            url: '@(Url.Action("UpdatePositions", "Record"))',
+            method: 'PATCH',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                LeaderboardId: leaderboardId,
+                SortBy: sortBy,
+                Direction: direction,
+                Take: take
+            }),
+            success: function (records) {
+                const recordContainer = $('#records-wrapper-id');
+                recordContainer.empty();
+                records.forEach(record => {
+                    recordContainer.append(`
+                        <div class="leaderboard-item">
+                            <span style="display:none;">${record.id}</span>
+                            <span class="record-id">№${record.place}</span>
+                            <input type="text" class="edit-name" value="${record.name}" readonly />
+                            <input type="number" class="edit-value" value="${record.value}" readonly />
+                            <button class="edit-btn">Edit</button>
+                            <button class="save-btn" style="display:none;">Save</button>
+                        </div>
+                    `);
+                });
+            },
+            error: function(xhr) {
+                showMessage("Error: " + xhr.responseText);
+            }
+        });
+
+        return false;
+    }
+
+
+
+
+    function showCreationPanel() {
+        creationPanel.style.display = 'block';
+        openCreatePanelBtn.style.display = 'none';
+    }
+
+    function hideCreationPanel() {
+        creationPanel.style.display = 'none';
+        openCreatePanelBtn.style.display = 'inline-block';
+        clearCreationForm();
+        clearMessage();
+    }
+
+    $('#addRecordBtn').on('click', function(e) {
+        e.preventDefault();
+        clearMessage();
+        const name = $('#newName').val().trim();
+        const value = parseInt($('#newValue').val());
+        if (!name) {
+            showMessage("Name is required.");
+            return;
+        }
+        if (isNaN(value)) {
+            showMessage("Score must be a number.");
+            return;
+        }
+        const newRecord = {
+            Name: name,
+            Value: value,
+            LeaderboardId: leaderboardId,
+            Id: ''
+        };
+        $.ajax({
+            url: `/records/${encodeURIComponent(leaderboardId)}`,
+            method: 'POST',
+            contentType: 'application/json',
+            headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+            data: JSON.stringify(newRecord),
+            success: function() {
+                showMessage("Record added successfully!", true);
+                clearCreationForm();
+                setTimeout(() => location.reload(), 1000);
+            },
+            error: function(xhr) {
+                showMessage("Error: " + xhr.responseText);
+            }
+        });
+    });
+
+    $(document).ready(function () {
+        $('.edit-toggle').on('click', function () {
+            const container = $(this).closest('.leaderboard-item');
+            container.addClass('editing');
+            container.find('.edit-name, .edit-value').prop('readonly', false).addClass('editable');
+            container.find('.save-btn').show();
+            $(this).hide();
+        });
+
+        $('.save-btn').on('click', function () {
+            const container = $(this).closest('.leaderboard-item');
+            const id = container.find('.record-database-id').text().trim();
+            const name = container.find('.edit-name').val().trim();
+            const value = parseInt(container.find('.edit-value').val());
+
+            if (!name) {
+                alert("Name is required.");
+                return;
+            }
+            if (isNaN(value)) {
+                alert("Score must be a number.");
+                return;
+            }
+
+            const updatedRecord = {
+                Id: id,
+                Name: name,
+                Value: value,
+                LeaderboardId: leaderboardId
+            };
+
+            console.log(updatedRecord);
+
+            $.ajax({
+                url: `/records/${id}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+                data: JSON.stringify(updatedRecord),
+                success: function () {
+                    container.removeClass('editing');
+                    container.find('.edit-name, .edit-value').prop('readonly', true).removeClass('editable');
+                    container.find('.edit-toggle').show();
+                    container.find('.save-btn').hide();
+                },
+                error: function (xhr) {
+                    alert("Error: " + xhr.responseText);
+                }
+            });
+        });
+    });
+
+    function showMessage(msg, success = false) {
+        const msgElem = document.getElementById('creationMessage');
+        msgElem.style.color = success ? '#8f8' : '#f88';
+        msgElem.textContent = msg;
+    }
+
+    function clearMessage() {
+        document.getElementById('creationMessage').textContent = '';
+    }
+
+    function clearCreationForm() {
+        document.getElementById('newName').value = '';
+        document.getElementById('newValue').value = '';
+    }
+
+    function getRequestVerificationToken() {
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        return tokenInput ? tokenInput.value : '';
+    }
+</script>
