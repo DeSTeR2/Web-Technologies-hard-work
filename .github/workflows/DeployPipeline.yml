@@ -1,4 +1,4 @@
-name: Run Tests pipeline
+name: Deploy pipeline
 
 on: 
   push: 
