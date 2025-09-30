@@ -9,11 +9,10 @@ env:
   DOCKER_IMAGE_NAME: rbgd32/leaderboardcoreapp
   DOTNET_CORE_VERSION: 9.0.x
   WORKING_DIRECTORY: ./MVC_API_CoreApp
-  RUNS_TARGET: windows-latest
 
 jobs: 
   build:
-    runs-on: ${{ env.RUNS_TARGET }}
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
@@ -26,7 +25,7 @@ jobs:
       run: dotnet build --no-restore ${{ env.WORKING_DIRECTORY }}
       
   test:
-    runs-on: ${{ env.RUNS_TARGET }}
+    runs-on: windows-latest
     needs: build
     steps: 
     - uses: actions/checkout@v4
@@ -38,7 +37,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal ${{ env.WORKING_DIRECTORY }}
 
   docker-build: 
-    runs-on: ${{ env.RUNS_TARGET }}
+    runs-on: windows-latest
     needs: build
     steps:
     - uses: actions/checkout@v4
@@ -51,7 +50,7 @@ jobs:
         docker push ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG
 
   deploy: 
-    runs-on: ${{ env.RUNS_TARGET }}
+    runs-on: windows-latest
     needs: [test, docker-build]
     steps: 
     - name: Deploy to Azure WebApp
