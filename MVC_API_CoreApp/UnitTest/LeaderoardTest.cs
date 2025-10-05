@@ -33,15 +33,12 @@ namespace TestProject1
         [Test]
         public async Task Get_ReturnsAllLeaderboards()
         {
-            // Arrange
             _context.Leaderboards.Add(new LeaderboardModel { Id = "1", Name = "L1", UserId = "u1" });
             _context.Leaderboards.Add(new LeaderboardModel { Id = "2", Name = "L2", UserId = "u2" });
             await _context.SaveChangesAsync();
-
-            // Act
+            
             var result = await _controller.Get(null) as OkObjectResult;
-
-            // Assert
+            
             Assert.That(result, Is.Not.Null);
             var list = result.Value as List<LeaderboardModel>;
             Assert.That(list, Is.Not.Null);
@@ -51,7 +48,6 @@ namespace TestProject1
         [Test]
         public async Task Upload_AddsLeaderboard()
         {
-            // Arrange
             var user = new User { Id = "user123", UserName = "TestUser", LeaderboaradIds = new List<string>() };
             _userManagerMock.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
 
@@ -66,11 +62,9 @@ namespace TestProject1
             };
 
             var leaderboard = new LeaderboardModel { Name = "TestBoard" };
-
-            // Act
+            
             var result = await _controller.Upload(leaderboard) as OkObjectResult;
-
-            // Assert
+            
             Assert.That(result, Is.Not.Null);
             var created = result.Value as LeaderboardModel;
             Assert.That(created, Is.Not.Null);
@@ -81,17 +75,14 @@ namespace TestProject1
         [Test]
         public async Task UpdateLeaderboard_UpdatesExisting()
         {
-            // Arrange
             var leaderboard = new LeaderboardModel { Id = "lb1", Name = "Before", UserId = "user" };
             _context.Leaderboards.Add(leaderboard);
             await _context.SaveChangesAsync();
 
             var updatedModel = new LeaderboardModel { Id = "lb1", Name = "After", UserId = "user" };
-
-            // Act
+            
             var result = await _controller.UpdateLeaderboard(updatedModel) as OkObjectResult;
-
-            // Assert
+            
             Assert.That(result, Is.Not.Null);
             var updated = result.Value as LeaderboardModel;
             Assert.That(updated, Is.Not.Null);
@@ -101,15 +92,12 @@ namespace TestProject1
         [Test]
         public async Task GetLeaderboard_ReturnsCorrectLeaderboard()
         {
-            // Arrange
             var lb = new LeaderboardModel { Id = "id123", Name = "LB", UserId = "user" };
             _context.Leaderboards.Add(lb);
             await _context.SaveChangesAsync();
-
-            // Act
+            
             var result = await _controller.GetLeaderboard("id123") as OkObjectResult;
-
-            // Assert
+            
             Assert.That(result, Is.Not.Null);
             var returned = result.Value as LeaderboardModel;
             Assert.That(returned, Is.Not.Null);
@@ -119,21 +107,18 @@ namespace TestProject1
         [Test]
         public async Task Delete_RemovesLeaderboard()
         {
-            // Arrange
             var lb = new LeaderboardModel { Id = "idDel", Name = "ToDelete", UserId = "user" };
             _context.Leaderboards.Add(lb);
             await _context.SaveChangesAsync();
-
-            // Act
+            
             var result = await _controller.Delete("idDel") as OkResult;
-
-            // Assert
+            
             Assert.That(result, Is.Not.Null);
             var deleted = await _context.Leaderboards.FindAsync("idDel");
             Assert.That(deleted, Is.Null);
         }
         
-                [Test]
+        [Test]
         public async Task Upload_AssignsGeneratedName_WhenNameIsNull()
         {
             var user = new User { Id = "user1", LeaderboaradIds = new List<string>() };

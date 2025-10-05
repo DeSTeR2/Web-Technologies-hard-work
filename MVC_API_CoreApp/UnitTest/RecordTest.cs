@@ -1,14 +1,10 @@
-using NUnit.Framework;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProjectMVC.Controllers;
 using ProjectInfrastructure.Context;
 using ProjectInfrastructure.Models;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
+using ProjectMVC.Controllers;
 
-namespace Tests
+namespace TestProject1
 {
     public class RecordControllerTests
     {
