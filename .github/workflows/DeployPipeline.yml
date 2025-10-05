@@ -1,7 +1,7 @@
 name: Deploy pipeline
 
-on: 
-  push: 
+on:
+  push:
     branches: ["CoreApp"]
 
 env:
@@ -10,31 +10,31 @@ env:
   DOTNET_CORE_VERSION: 9.0.x
   WORKING_DIRECTORY: ./MVC_API_CoreApp
 
-jobs: 
+jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore ${{ env.WORKING_DIRECTORY }}
-    - name: Build
-      run: dotnet build --no-restore ${{ env.WORKING_DIRECTORY }}
-      
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.WORKING_DIRECTORY }}
+      - name: Build
+        run: dotnet build --no-restore ${{ env.WORKING_DIRECTORY }}
+
   test:
     runs-on: ubuntu-latest
     needs: build
-    steps: 
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Test
-      run: dotnet test --no-build --verbosity normal ${{ env.WORKING_DIRECTORY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Test
+        run: dotnet test --no-build --verbosity normal ${{ env.WORKING_DIRECTORY }}
 
   docker-build:
     runs-on: ubuntu-latest
@@ -45,12 +45,24 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
       - name: Build and push Docker image
         run: |
-          SHORT_SHA=${{ github.sha::0:7 }}   # short sha (illustrative)
-          IMAGE_TAG=${SHORT_SHA:-${{ github.sha }}} 
-          docker build ${{ env.WORKING_DIRECTORY }} -t ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG
+          # GITHUB_SHA is provided by Actions as an env var
+          SHORT_SHA=${GITHUB_SHA::7}         # bash substring (first 7 chars)
+          # fallback to full sha if somehow SHORT_SHA empty
+          if [ -z "$SHORT_SHA" ]; then
+            IMAGE_TAG=${GITHUB_SHA}
+          else
+            IMAGE_TAG=${SHORT_SHA}
+          fi
+
+          echo "Using image tag: $IMAGE_TAG"
+
+          docker build ${{ env.WORKING_DIRECTORY }} -t ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG .
           docker tag ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG ${{ env.DOCKER_IMAGE_NAME }}:latest
+
           docker push ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG
           docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
+
+          # optionally export the tag as a step output (if you want to reference it later)
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   deploy:
@@ -63,4 +75,3 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           images: ${{ env.DOCKER_IMAGE_NAME }}:latest
-
