@@ -2,7 +2,7 @@ name: Deploy pipeline
 
 on: 
   push: 
-    branches: ["CoreApp"]
+    branches: ["ToDoApp"]
 
 env:
   AZURE_WEBAPP_NAME: ToDoApp2
