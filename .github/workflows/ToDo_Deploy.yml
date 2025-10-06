@@ -5,7 +5,7 @@ on:
     branches: ["CoreApp"]
 
 env:
-  AZURE_WEBAPP_NAME: LeaderboardV3
+  AZURE_WEBAPP_NAME: ToDoApp2
   DOCKER_IMAGE_NAME: rbgd32/leaderboardcoreapp
   DOTNET_CORE_VERSION: 9.0.x
   WORKING_DIRECTORY: ./ToDoApp
