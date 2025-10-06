@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal" created-in="RD-243.26053.56">
+    <data-source name="ToDoDataBase@for-web-laba.database.windows.net" uuid="44d12545-d846-4303-9225-4b4b7bbc3866">
+      <database-info product="Microsoft SQL Server" version="12.00.813" jdbc-version="4.3" driver-name="Microsoft JDBC Driver 12.8 for SQL Server" driver-version="12.8.1.0" dbms="AZURE" exact-version="12.0.813" exact-driver-version="12.8">
+        <extra-name-characters>$#@</extra-name-characters>
+        <identifier-quote-string>&quot;</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="mixed" quoted-identifiers="mixed" />
+      <secret-storage>master_key</secret-storage>
+      <user-name>for-web-laba-admin</user-name>
+      <schema-mapping>
+        <introspection-scope>
+          <node kind="database" qname="@">
+            <node kind="schema" qname="@" />
+          </node>
+        </introspection-scope>
+      </schema-mapping>
+    </data-source>
+  </component>
+</project>
