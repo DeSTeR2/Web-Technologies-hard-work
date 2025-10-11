@@ -10,7 +10,6 @@ using ProjectMVC.Utils.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add MVC and OData controllers
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers().AddOData(options =>
 {
@@ -29,14 +28,13 @@ builder.Services.AddControllers()
     });
 
 
-// Add DB contexts
 builder.Services.AddDbContext<LeaderboardDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MainConnection")));
 
 builder.Services.AddDbContext<UserApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MainConnection")));
 
-// Configure Identity with your custom User model
+
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<UserApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -46,7 +44,8 @@ builder.Services.AddControllers()
     .AddJsonOptions(opt => {
         opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
-// Swagger
+
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -66,7 +65,6 @@ builder.Services.AddControllers()
 
 var app = builder.Build();
 
-// Apply EF migrations
 app.ApplyMigration<UserApplicationDbContext>();
 app.ApplyMigration<LeaderboardDbContext>();
 
