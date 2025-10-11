@@ -1,7 +1,7 @@
 name: Deploy pipeline
 
-on:
-  push:
+on: 
+  push: 
     branches: ["CoreApp"]
 
 env:
@@ -10,71 +10,52 @@ env:
   DOTNET_CORE_VERSION: 9.0.x
   WORKING_DIRECTORY: ./MVC_API_CoreApp
 
-jobs:
+jobs: 
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Restore
-        run: dotnet restore ${{ env.WORKING_DIRECTORY }}
-      - name: Build (Release)
-        run: dotnet build ${{ env.WORKING_DIRECTORY }} -c Release --no-restore
-      - name: Publish (Release)
-        run: dotnet publish ${{ env.WORKING_DIRECTORY }} -c Release -o publish --no-build
-      - name: Upload published artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: publish
-          path: ${{ env.WORKING_DIRECTORY }}/publish
-
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.WORKING_DIRECTORY }}
+    - name: Build
+      run: dotnet build --no-restore ${{ env.WORKING_DIRECTORY }}
+      
   test:
     runs-on: ubuntu-latest
     needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Run tests
-        run: |
-          dotnet test --no-build --verbosity normal ${{ env.WORKING_DIRECTORY }}
-        # <-- replace with your actual test project path
+    steps: 
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+    - name: Test
+      run: dotnet test --no-build --verbosity normal ${{ env.WORKING_DIRECTORY }}
 
-  docker-build:
+  docker-build: 
     runs-on: ubuntu-latest
-    needs: [build, test]
+    needs: build
     steps:
-      - uses: actions/checkout@v4
-      - name: Download published artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: publish
-          path: ./publish_artifact
-      - name: Log in to Docker Hub
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      - name: Build Docker image (uses published output)
-        run: |
-          IMAGE_TAG=${{ github.sha }}
-          docker build ${{ env.WORKING_DIRECTORY }} -f ${{ env.WORKING_DIRECTORY }}/Dockerfile -t ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG
-          docker push ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG
-        env:
-          DOCKER_BUILDKIT: 1
+    - uses: actions/checkout@v4
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+    - name: Build and push Docker image
+      run: |
+        IMAGE_TAG=${{ github.sha }}
+        docker build ${{ env.WORKING_DIRECTORY }} -t ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG
+        docker push ${{ env.DOCKER_IMAGE_NAME }}:$IMAGE_TAG
 
-  deploy:
+  deploy: 
     runs-on: ubuntu-latest
-    needs: [docker-build]
-    steps:
-      - name: Deploy to Azure WebApp (container)
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+    needs: [test, docker-build]
+    steps: 
+    - name: Deploy to Azure WebApp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        images: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} 
