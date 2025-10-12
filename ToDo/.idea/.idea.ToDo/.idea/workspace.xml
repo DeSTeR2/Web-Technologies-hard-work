@@ -19,12 +19,16 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/1b38f70091c54a558599f085b2d139748ce38/1a/a631a493/BadRequestResult.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/64620cef67944f87b352c69607713d686e918/a5/f9e680aa/PageModel.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/fe1971771878441fa85b64b1141948ee19c38/0b/5ff3289d/IActionResult.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="SWEA" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -36,6 +40,7 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;.NET Launch Settings Profile.ToDoApp: http.executor&quot;: &quot;Run&quot;,
+    &quot;.NET Launch Settings Profile.ToDoApp: https.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   },
@@ -45,7 +50,7 @@
     ]
   }
 }</component>
-  <component name="RunManager" selected="Docker.ToDoApp/Dockerfile">
+  <component name="RunManager" selected=".NET Launch Settings Profile.ToDoApp: https">
     <configuration name="ToDoApp: http" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/ToDoApp/ToDoApp.csproj" />
       <option name="LAUNCH_PROFILE_TFM" value="net9.0" />
@@ -98,7 +103,10 @@
       <method v="2" />
     </configuration>
     <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
-      <deployment type="dockerfile" />
+      <deployment type="dockerfile">
+        <settings />
+      </deployment>
+      <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isSslEnabled="false" />
       <method v="2" />
     </configuration>
   </component>
@@ -112,6 +120,8 @@
       <updated>1759769938192</updated>
       <workItem from="1759769939254" duration="2149000" />
       <workItem from="1759772112120" duration="4781000" />
+      <workItem from="1759868813582" duration="602000" />
+      <workItem from="1760187514574" duration="4230000" />
     </task>
     <servers />
   </component>

@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using ToDoApp.Context;
 
@@ -12,6 +14,9 @@ builder.Services.AddDbContext<ToDoContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("MainConnection"));
 });
+
+/*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));*/
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -45,5 +50,9 @@ else
     });
 }
 
-app.MapGet("/", () => "Hello");
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/Home");
+    return Task.CompletedTask;
+});
 app.Run();

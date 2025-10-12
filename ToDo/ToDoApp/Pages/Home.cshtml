@@ -1,0 +1,138 @@
+@page
+@model ToDoApp.View.Home.Home
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>To‑Do — Home</title>
+    <style>
+        :root{font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111}
+        body{margin:0;padding:0;background:#f6f7fb}
+        .container{max-width:1100px;margin:36px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 6px 22px rgba(20,20,50,.06)}
+        header{display:flex;align-items:center;justify-content:space-between}
+        h1{margin:0;font-size:1.6rem}
+        .new-todo{display:flex;gap:8px;margin-top:18px}
+        .btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+        .btn-primary{background:#3b82f6;color:#fff}
+        .btn-ghost{background:transparent;border:1px solid #e3e8f0}
+        .btn-small{padding:6px 8px;font-size:.9rem}
+        .flex{display:flex;gap:12px;align-items:center}
+        .lists{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+        .list-card{min-width:200px;max-width:260px;padding:12px;border-radius:10px;border:1px solid #eef2ff;background:#fbfdff;box-shadow:0 4px 10px rgba(10,20,50,.03)}
+        .list-card h3{margin:0 0 8px 0;font-size:1rem}
+        .list-meta{font-size:.85rem;color:#6b7280}
+        .list-actions{margin-top:10px;display:flex;gap:8px}
+        .empty{padding:28px;text-align:center;color:#6b7280}
+    </style>
+</head>
+<body>
+<div class="container" role="main">
+    <header>
+        <h1>My To‑Do Lists</h1>
+        <div class="small meta">Manage lists — open a list to see its tasks.</div>
+    </header>
+
+    <section class="flex" style="margin-top:16px;">
+        <input id="listNameInput" type="text" placeholder="New list name" aria-label="New list name" style="padding:8px;border-radius:8px;border:1px solid #e6ecff;flex:1;" />
+        <button id="createListBtn" class="btn btn-primary btn-small">Create List</button>
+        <button id="refreshListsBtn" class="btn btn-ghost btn-small">Refresh</button>
+    </section>
+
+    <section aria-label="Lists" style="padding:12px;">
+        <div class="lists" id="listsContainer">
+            <!-- list cards will be injected -->
+        </div>
+    </section>
+
+    <template id="listCardTemplate">
+        <div class="list-card" data-id="">
+            <h3 class="list-title">List name</h3>
+            <div class="list-meta small"><span class="count">0</span> tasks</div>
+            <div class="list-actions">
+                <button class="btn btn-primary btn-small btn-open">Open</button>
+                <button class="btn btn-ghost btn-small btn-delete-list">Delete</button>
+            </div>
+        </div>
+    </template>
+
+</div>
+
+<script>
+    const listsEndpoint = '/api/TodoList';
+
+    const listsContainer = document.getElementById('listsContainer');
+    const listCardTemplate = document.getElementById('listCardTemplate');
+
+    async function fetchLists(){
+        try{
+            const res = await fetch(listsEndpoint);
+            if(!res.ok) throw new Error('could not load lists');
+            const data = await res.json();
+            renderLists(data || []);
+        }catch(e){
+            listsContainer.innerHTML = '<div class="empty">Unable to load lists.</div>';
+            console.error(e);
+        }
+    }
+
+    function renderLists(items){
+        listsContainer.innerHTML = '';
+        if(!items.length){
+            listsContainer.innerHTML = '<div class="empty">No lists yet. Create one!</div>';
+            return;
+        }
+        items.forEach(item=>{
+            const node = listCardTemplate.content.cloneNode(true);
+            const card = node.querySelector('.list-card');
+            card.dataset.id = item.id;
+            card.querySelector('.list-title').textContent = item.name;
+            card.querySelector('.count').textContent = item.count ?? 0;
+
+            node.querySelector('.btn-open').addEventListener('click', ()=>{
+                // navigate to ListDetails page — list ID passed as query string
+                window.location.href = `/ListDetails?id=${encodeURIComponent(item.id)}`;
+            });
+
+            node.querySelector('.btn-delete-list').addEventListener('click', async ()=>{
+                if(!confirm('Delete list "' + item.name + '"?')) return;
+                await deleteList(item.id);
+                await fetchLists();
+            });
+
+            listsContainer.appendChild(node);
+        });
+    }
+
+    async function createList(name){
+        try{
+            // Quick server-compatible call: send name in query string
+            const res = await fetch(`${listsEndpoint}?name=${encodeURIComponent(name)}`, { method: 'POST' });
+            if(!res.ok) throw new Error('create list failed');
+            await fetchLists();
+        }catch(e){alert('Unable to create list'); console.error(e);}        }
+
+    async function deleteList(id){
+        try{
+            const res = await fetch(`${listsEndpoint}/${id}`, { method:'DELETE' });
+            if(!res.ok) throw new Error('delete failed');
+        }catch(e){console.error(e);}        }
+
+    // UI events
+    document.getElementById('createListBtn').addEventListener('click', ()=>{
+        const name = document.getElementById('listNameInput').value.trim();
+        if(!name) return; createList(name); document.getElementById('listNameInput').value = '';
+    });
+
+    document.getElementById('refreshListsBtn').addEventListener('click', ()=>fetchLists());
+
+    // initial load
+    fetchLists();
+</script>
+</body>
+</html>

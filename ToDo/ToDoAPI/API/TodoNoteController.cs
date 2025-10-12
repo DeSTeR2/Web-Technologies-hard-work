@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ToDoAPI.Model;
@@ -7,11 +8,20 @@ namespace ToDoAPI.API;
 
 [Route("api/[controller]")]
 [ApiController]
-public class TodoNoteController(ToDoContext todoContext, TodoListController todoListController) : ControllerBase
+public class TodoNoteController : ControllerBase
 {
+    private readonly ToDoContext _todoContext;
+    private readonly TodoListController _todoListController;
+
+    public TodoNoteController(ToDoContext todoContext, TodoListController todoListController)
+    {
+        _todoContext = todoContext;
+        _todoListController = todoListController;
+    }
+
     [NonAction]
     public async Task<TodoNote> FindNoteAsync(string id) =>
-        await todoContext.TodoNotes.FirstOrDefaultAsync(note => note.Id == id) 
+        await _todoContext.TodoNotes.FirstOrDefaultAsync(note => note.Id == id) 
         ?? throw new InvalidOperationException();
     
     [HttpGet("{id}")]
@@ -35,6 +45,7 @@ public class TodoNoteController(ToDoContext todoContext, TodoListController todo
         {
             var note = await FindNoteAsync(id);
             note.Content = content;
+            await _todoContext.SaveChangesAsync();
             return Ok(note);
         }
         catch (Exception e)
@@ -50,6 +61,7 @@ public class TodoNoteController(ToDoContext todoContext, TodoListController todo
         {
             var note = await FindNoteAsync(id);
             note.EndDate = endDate;
+            await _todoContext.SaveChangesAsync();
             return Ok(note);
         }
         catch (Exception e)
@@ -65,6 +77,7 @@ public class TodoNoteController(ToDoContext todoContext, TodoListController todo
         {
             var note = await FindNoteAsync(id);
             note.Status = status;
+            await _todoContext.SaveChangesAsync();
             return Ok(note);
         }
         catch (Exception e)
@@ -74,8 +87,8 @@ public class TodoNoteController(ToDoContext todoContext, TodoListController todo
     }
     
     
-    [HttpPost("leaderboard/{leaderboardId}")]
-    public async Task<IActionResult> Add(string leaderboardId, [FromQuery] string context, [FromQuery] DateTime endDate)
+    [HttpPost("{listId}")]
+    public async Task<IActionResult> Add(string listId, [FromQuery] string context, [FromQuery] DateTime endDate)
     {
         var builder = new TodoNote.Builder();
         if (context != string.Empty)
@@ -85,8 +98,9 @@ public class TodoNoteController(ToDoContext todoContext, TodoListController todo
             builder.AddEndDate(endDate);
 
         var note = builder.Build();
-        var list = await todoListController.FindListAsync(leaderboardId);
+        var list = await _todoListController.FindListAsync(listId);
         list.AddNote(note);
+        await _todoContext.SaveChangesAsync();
         return Ok(note);
     }
     
@@ -96,7 +110,8 @@ public class TodoNoteController(ToDoContext todoContext, TodoListController todo
         try
         {
             var note = await FindNoteAsync(id);
-            todoContext.TodoNotes.Remove(note);
+            _todoContext.TodoNotes.Remove(note);
+            await _todoContext.SaveChangesAsync();
             return Ok(note);
         }
         catch (Exception e)

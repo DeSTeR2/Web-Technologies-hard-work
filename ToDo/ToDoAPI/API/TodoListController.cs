@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ToDoAPI.Model;
@@ -7,13 +8,37 @@ namespace ToDoAPI.API;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TodoListController(ToDoContext todoContext) : ControllerBase
+public class TodoListController : ControllerBase
 {
+    private readonly ToDoContext _toDoContext;
+
+    public TodoListController(ToDoContext toDoContext) => _toDoContext = toDoContext;
+
     [NonAction]
     public async Task<TodoList> FindListAsync(string id) => 
-        await todoContext.ToDoLists.FirstOrDefaultAsync(l => l.Id == id) 
+        await _toDoContext.ToDoLists.FirstOrDefaultAsync(l => l.Id == id) 
         ?? throw new InvalidOperationException();
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        return Ok(_toDoContext.ToDoLists);
+    }
+
+    [HttpGet("{id}/todos")]
+    public async Task<IActionResult> GetTodos(string id)
+    {
+        try
+        {
+            var list = await FindListAsync(id);
+            return Ok(list.Notes ?? new List<TodoNote>());
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
+    }
+    
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(string id)
     {
@@ -42,18 +67,19 @@ public class TodoListController(ToDoContext todoContext) : ControllerBase
         }
     }
 
-    [HttpPost("user/{id}")]
-    public IActionResult Add(string id, string name = "")
+    [HttpPost]
+    public async Task<IActionResult> Add([FromQuery] string name)
     {
         try
         {
-            var list = new TodoList(id, name);
-            todoContext.ToDoLists.Add(list);
+            var list = new TodoList(Guid.NewGuid().ToString(), name);
+            _toDoContext.ToDoLists.Add(list);
+            await _toDoContext.SaveChangesAsync();
             return Ok(list);
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(e.Message);
         }
     }
 
@@ -63,12 +89,13 @@ public class TodoListController(ToDoContext todoContext) : ControllerBase
         try
         {
             var list = await FindListAsync(id);
-            todoContext.ToDoLists.Remove(list);
+            _toDoContext.ToDoLists.Remove(list);
+            await _toDoContext.SaveChangesAsync();
             return Ok(list);
         }
         catch (Exception e)
         {
-            return NotFound(e);
+            return NotFound(e.Message);
         }                           
     }
 }

@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace ToDoAPI.Model;
 
+[Serializable]
 public class TodoNote
 {
     public string? Id { get; set; }

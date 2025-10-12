@@ -1,5 +1,6 @@
 namespace ToDoAPI.Model;
 
+[Serializable]
 public enum TodoStatus
 {
     None = 0,

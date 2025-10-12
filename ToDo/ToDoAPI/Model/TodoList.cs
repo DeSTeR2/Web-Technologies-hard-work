@@ -1,7 +1,6 @@
-using Microsoft.VisualBasic;
-
 namespace ToDoAPI.Model;
 
+[Serializable]
 public class TodoList
 {
     public string? Id { get; set; }
