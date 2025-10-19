@@ -17,5 +17,21 @@
         </introspection-scope>
       </schema-mapping>
     </data-source>
+    <data-source name="TodoDatabase2@for-web-laba.database.windows.net" uuid="3cbd21e6-772b-4cbe-892d-144063f0fb95">
+      <database-info product="Microsoft SQL Server" version="12.00.924" jdbc-version="4.3" driver-name="Microsoft JDBC Driver 12.8 for SQL Server" driver-version="12.8.1.0" dbms="AZURE" exact-version="12.0.924" exact-driver-version="12.8">
+        <extra-name-characters>$#@</extra-name-characters>
+        <identifier-quote-string>&quot;</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="mixed" quoted-identifiers="mixed" />
+      <secret-storage>master_key</secret-storage>
+      <user-name>for-web-laba-admin</user-name>
+      <schema-mapping>
+        <introspection-scope>
+          <node kind="database" qname="@">
+            <node kind="schema" qname="@" />
+          </node>
+        </introspection-scope>
+      </schema-mapping>
+    </data-source>
   </component>
 </project>

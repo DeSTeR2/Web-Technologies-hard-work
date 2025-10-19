@@ -9,6 +9,7 @@
 <head>
     <meta charset="utf-8" />
     <title>ToDo List Details</title>
+    <link rel="icon" type="image/x-icon" href="/images/logo.svg">
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <style>
         :root{font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111}
@@ -50,6 +51,17 @@
     </style>
 </head>
 <body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center ms-auto">
+            <img id="userIcon" src="/Account/Get/UserPhoto" class="rounded-circle me-2" style="width:32px; height:32px;" alt="User Icon">
+            <span id="userName" class="me-3 fw-semibold"></span>
+            <button id="logoutBtn" class="btn btn-outline-danger btn-sm">Logout</button>
+        </div>
+    </div>
+</nav>
+
 <div class="container">
     <header>
         <div>
@@ -71,13 +83,13 @@
     <div class="modal" role="document" aria-labelledby="modalTitle">
         <h3 id="modalTitle">Create note</h3>
         <label for="modalTitleInput">Title</label>
-        <input id="modalTitleInput" />
+        <input id="modalTitleInput"/>
         <label for="modalContextInput">Context</label>
         <textarea id="modalContextInput" rows="6"></textarea>
         <div class="row" style="margin-top:8px">
             <div class="col">
                 <label for="modalEndInput">End date (optional)</label>
-                <input id="modalEndInput" type="datetime-local" />
+                <input id="modalEndInput" type="datetime-local"/>
             </div>
             <div class="col">
                 <label for="modalStatusSelect">Status</label>
@@ -96,205 +108,10 @@
     </div>
 </div>
 
+<script src="~/js/listDetails.js"></script>
+<script src="~/js/account.js"></script>
 <script>
-    // visible statuses (exclude None=0)
-    const VisibleStatuses = [1,2,3,4];
-    const statusNames = { 1:'Waiting',2:'In Process',3:'Disabled',4:'Completed' };
-
-    const listId = "@listId";
-    const listsEndpoint = '/api/TodoList';
-    const todoApi = '/api/TodoNote';
-
-    const board = document.getElementById('board');
-    const backBtn = document.getElementById('backBtn');
-    const listTitle = document.getElementById('listTitle');
-    const listMeta = document.getElementById('listMeta');
-
-    // modal elements
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const modalTitleInput = document.getElementById('modalTitleInput');
-    const modalContextInput = document.getElementById('modalContextInput');
-    const modalEndInput = document.getElementById('modalEndInput');
-    const modalStatusSelect = document.getElementById('modalStatusSelect');
-    const modalCancel = document.getElementById('modalCancel');
-    const modalCreate = document.getElementById('modalCreate');
-
-    function buildColumns(){
-        board.innerHTML = '';
-        VisibleStatuses.forEach(status =>{
-            const col = document.createElement('div');
-            col.className = 'column';
-            col.dataset.status = status;
-            col.innerHTML = `
-                <div class="col-header">
-                    <div style="display:flex;align-items:center;gap:8px"><div class="col-title">${statusNames[status]}</div><div class="col-count" data-count>0</div></div>
-                    <button class="col-add" data-add-status="${status}">+ Add</button>
-                </div>
-                <div class="col-body"></div>`;
-            board.appendChild(col);
-        });
-
-        // attach add handlers
-        board.querySelectorAll('.col-add').forEach(btn =>{
-            btn.addEventListener('click', ()=> openCreateModal(Number(btn.dataset.addStatus)));
-        });
-    }
-
-    async function loadList(){
-        try{
-            const res = await fetch(`${listsEndpoint}/${listId}`);
-            if(!res.ok) throw new Error('failed to load list');
-            const list = await res.json();
-            listTitle.textContent = list.name || 'Unnamed';
-            listMeta.textContent = (list.count ?? 0) + ' tasks';
-            // show columns even before todos arrive
-            buildColumns();
-            await loadTodos();
-        }catch(e){ listTitle.textContent = 'Error loading list'; console.error(e); }
-    }
-
-    async function loadTodos(){
-        try{
-            const res = await fetch(`${listsEndpoint}/${listId}/todos`);
-            if(!res.ok){
-                const txt = await res.text();
-                console.error('loadTodos: bad response', res.status, txt);
-                throw new Error('failed to load todos');
-            }
-
-            // parse JSON safely
-            const data = await res.json();
-            // normalize array shapes: accept array or { todos: [...]} etc.
-            let items = Array.isArray(data) ? data : (Array.isArray(data.todos) ? data.todos : (Array.isArray(data.items) ? data.items : []));
-            renderBoard(items);
-        }catch(e){ board.innerHTML = '<div class="empty">Could not load tasks</div>'; console.error('loadTodos error', e); }
-    }
-
-    function renderBoard(items){
-        // ensure columns exist
-        buildColumns();
-        const buckets = {1:[],2:[],3:[],4:[]};
-        if(!Array.isArray(items)) items = [];
-
-        items.forEach(it=>{
-            const s = (it.status == null) ? 0 : Number(it.status);
-            if(s in buckets) buckets[s].push(it);
-        });
-
-        Object.keys(buckets).forEach(statusKey =>{
-            const col = board.querySelector(`.column[data-status='${statusKey}']`);
-            const body = col.querySelector('.col-body');
-            body.innerHTML = '';
-
-            buckets[statusKey].forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.dataset.id = item.id;
-                card.innerHTML = `
-                    <div class="left">
-                        <div class="title">${escapeHtml(item.title)}</div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-                        <select class="status-select" aria-label="Change status">
-                            ${VisibleStatuses.map(s => `<option value="${s}">${statusNames[s]}</option>`).join('')}
-                        </select>
-                        <div class="actions" style="display:flex;gap:6px;margin-top:6px">
-                            <button class="btn btn-ghost btn-edit">Edit</button>
-                            <button class="btn btn-ghost btn-delete">Delete</button>
-                        </div>
-                    </div>`;
-
-                const sel = card.querySelector('.status-select');
-                sel.value = (item.status == null) ? String(VisibleStatuses[0]) : String(item.status);
-
-                sel.addEventListener('change', async (e)=>{
-                    const newStatus = Number(e.target.value);
-                    try{ await updateTodoStatus(item.id, newStatus); await loadTodos(); }catch(err){console.error(err);}                });
-
-                card.querySelector('.btn-edit').addEventListener('click', async ()=>{
-                    const newTitle = prompt('Edit task title', item.title);
-                    if(newTitle!=null && newTitle.trim()!==''){
-                        try{ await updateTodoContent(item.id, newTitle.trim()); await loadTodos(); }catch(err){console.error(err);}                    }
-                });
-
-                card.querySelector('.btn-delete').addEventListener('click', async ()=>{
-                    if(!confirm('Delete this task?')) return;
-                    try{ await deleteTodo(item.id); await loadTodos(); }catch(err){console.error(err);}                });
-
-                body.appendChild(card);
-            });
-
-            const countEl = col.querySelector('[data-count]');
-            countEl.textContent = buckets[statusKey].length;
-        });
-    }
-
-    // API usage adapted to TodoNoteController
-    async function createTodo(title, endDate, status){
-        try{
-            const qs = [];
-            if(title) qs.push('context=' + encodeURIComponent(title));
-            if(endDate) qs.push('endDate=' + encodeURIComponent(endDate));
-            const query = qs.length ? ('?' + qs.join('&')) : '';
-            const res = await fetch(`${todoApi}/${listId}${query}`, { method: 'POST' });
-            if(!res.ok){ const t = await res.text(); console.error('createTodo failed', res.status, t); throw new Error('create todo failed'); }
-            const created = await res.json();
-            // set status if needed (API creates with None by default)
-            if(typeof status === 'number' && status !== 0){
-                await updateTodoStatus(created.id, status);
-            }
-            await loadTodos();
-        }catch(e){alert('Unable to add todo'); console.error(e);}    }
-
-    async function updateTodoStatus(id, status){
-        const res = await fetch(`${todoApi}/${id}/${status}`, { method: 'PATCH' });
-        if(!res.ok){ const t = await res.text(); console.error('updateTodoStatus failed', res.status, t); throw new Error('status update failed'); }
-    }
-
-    async function updateTodoContent(id, content){
-        const res = await fetch(`${todoApi}/${id}/${encodeURIComponent(content)}`, { method: 'PATCH' });
-        if(!res.ok){ const t = await res.text(); console.error('updateTodoContent failed', res.status, t); throw new Error('content update failed'); }
-    }
-
-    async function deleteTodo(id){
-        const res = await fetch(`${todoApi}/${id}`, { method:'DELETE' });
-        if(!res.ok){ const t = await res.text(); console.error('deleteTodo failed', res.status, t); throw new Error('delete failed'); }
-    }
-
-    // modal controls
-    function openCreateModal(status){
-        modalTitleInput.value = '';
-        modalContextInput.value = '';
-        modalEndInput.value = '';
-        modalStatusSelect.value = String(status);
-        modalBackdrop.style.display = 'flex';
-        modalBackdrop.setAttribute('aria-hidden','false');
-        modalTitleInput.focus();
-    }
-
-    function closeCreateModal(){
-        modalBackdrop.style.display = 'none';
-        modalBackdrop.setAttribute('aria-hidden','true');
-    }
-
-    modalCancel.addEventListener('click', ()=> closeCreateModal());
-    modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) closeCreateModal(); });
-
-    modalCreate.addEventListener('click', async ()=>{
-        const title = modalTitleInput.value.trim();
-        const context = modalContextInput.value.trim();
-        const end = modalEndInput.value ? new Date(modalEndInput.value).toISOString() : null;
-        const status = Number(modalStatusSelect.value) || VisibleStatuses[0];
-        const payloadTitle = title || context || '';
-        await createTodo(payloadTitle, end, status);
-        closeCreateModal();
-    });
-
-    function escapeHtml(str){ if(!str) return ''; return String(str).replace(/[&"'<>]/g, s => ({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'}[s])); }
-
-    backBtn.addEventListener('click', ()=> window.location.href = '/');
-
-    // initial
+    setListId("@listId");
     loadList();
 </script>
 </body>

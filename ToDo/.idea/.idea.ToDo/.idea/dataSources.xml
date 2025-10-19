@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlserver://for-web-laba.database.windows.net:1433;database=ToDoDataBase</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="TodoDatabase2@for-web-laba.database.windows.net" uuid="3cbd21e6-772b-4cbe-892d-144063f0fb95">
+      <driver-ref>azure.ms</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
+      <jdbc-url>jdbc:sqlserver://for-web-laba.database.windows.net:1433;database=TodoDatabase2</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

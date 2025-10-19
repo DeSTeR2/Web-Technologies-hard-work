@@ -19,8 +19,15 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/1b38f70091c54a558599f085b2d139748ce38/1a/a631a493/BadRequestResult.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/1ea30f2a81c74b44b668b99701578f5b8510/8c/0a4117bb/IDataProtectionProvider.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/64620cef67944f87b352c69607713d686e918/a5/f9e680aa/PageModel.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b98f199b626d40fabd5ecfa135420732265e00/e0/33655073/MongoCollectionBase`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/fe1971771878441fa85b64b1141948ee19c38/0b/5ff3289d/IActionResult.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/294078ecfce6fdb942ecfee089f09717de7a6fcfe5efd9fdb6f4f93c0fb4813/ActionMethodExecutor.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/5cde391207de75962d7bacb899ca2bd3985c86911b152d185b58999a422bf0/Type.CoreCLR.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/6fa05d7dbf2e454ce78b261b422234da1f1ccedee678fd997e5ef4afe6df6e/ControllerBase.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/9a6b1457cbcf17db31a383ba49ef9bcc786cf3ef77146d997eee499b27a46d/Object.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/bd1d5c50194fea68ff3559c160230b0ab50f5acf4ce3061bffd6d62958e2182/ExceptionDispatchInfo.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
@@ -37,19 +44,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;.NET Launch Settings Profile.ToDoApp: http.executor&quot;: &quot;Run&quot;,
-    &quot;.NET Launch Settings Profile.ToDoApp: https.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Launch Settings Profile.ToDoApp: http.executor": "Run",
+    ".NET Launch Settings Profile.ToDoApp: https.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;azure&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "azure"
     ]
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected=".NET Launch Settings Profile.ToDoApp: https">
     <configuration name="ToDoApp: http" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/ToDoApp/ToDoApp.csproj" />
@@ -122,11 +129,240 @@
       <workItem from="1759772112120" duration="4781000" />
       <workItem from="1759868813582" duration="602000" />
       <workItem from="1760187514574" duration="4230000" />
+      <workItem from="1760264054678" duration="9443000" />
+      <workItem from="1760886546268" duration="11610000" />
     </task>
     <servers />
   </component>
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoNoteController.cs</url>
+          <line>20</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoNoteController.cs" containingFunctionPresentation="Method 'Get'">
+            <startOffsets>
+              <option value="559" />
+            </startOffsets>
+            <endOffsets>
+              <option value="779" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoNoteController.cs</url>
+          <line>34</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoNoteController.cs" containingFunctionPresentation="Method 'UpdateContext'">
+            <startOffsets>
+              <option value="933" />
+            </startOffsets>
+            <endOffsets>
+              <option value="1183" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoNoteController.cs</url>
+          <line>48</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoNoteController.cs" containingFunctionPresentation="Method 'UpdateContextWithEndDate'">
+            <startOffsets>
+              <option value="1360" />
+            </startOffsets>
+            <endOffsets>
+              <option value="1610" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="40" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoNoteController.cs</url>
+          <line>62</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoNoteController.cs" containingFunctionPresentation="Method 'UpdateContextWithStatus'">
+            <startOffsets>
+              <option value="1786" />
+            </startOffsets>
+            <endOffsets>
+              <option value="2034" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoNoteController.cs</url>
+          <line>76</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoNoteController.cs" containingFunctionPresentation="Method 'Add'">
+            <startOffsets>
+              <option value="2273" />
+            </startOffsets>
+            <endOffsets>
+              <option value="3105" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>138</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'Delete'">
+            <startOffsets>
+              <option value="3950" />
+            </startOffsets>
+            <endOffsets>
+              <option value="4179" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="44" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>109</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'DeleteNote'">
+            <startOffsets>
+              <option value="3118" />
+            </startOffsets>
+            <endOffsets>
+              <option value="3371" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>95</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'AddNote'">
+            <startOffsets>
+              <option value="2713" />
+            </startOffsets>
+            <endOffsets>
+              <option value="2961" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="47" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>80</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'GetByUserId'">
+            <startOffsets>
+              <option value="2245" />
+            </startOffsets>
+            <endOffsets>
+              <option value="2560" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="48" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>64</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'Get'">
+            <startOffsets>
+              <option value="1736" />
+            </startOffsets>
+            <endOffsets>
+              <option value="1965" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="49" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>50</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'GetTodos'">
+            <startOffsets>
+              <option value="1376" />
+            </startOffsets>
+            <endOffsets>
+              <option value="1620" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="50" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>22</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'FindListAsyncResult'">
+            <startOffsets>
+              <option value="604" />
+            </startOffsets>
+            <endOffsets>
+              <option value="831" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="51" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>36</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'GetAll'">
+            <startOffsets>
+              <option value="933" />
+            </startOffsets>
+            <endOffsets>
+              <option value="977" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoNoteController.cs</url>
+          <line>15</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoNoteController.cs" containingFunctionPresentation="Method 'FindNoteAsync'">
+            <startOffsets>
+              <option value="422" />
+            </startOffsets>
+            <endOffsets>
+              <option value="452" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="53" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoNoteController.cs</url>
+          <line>107</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoNoteController.cs" containingFunctionPresentation="Method 'Delete'">
+            <startOffsets>
+              <option value="3227" />
+            </startOffsets>
+            <endOffsets>
+              <option value="3462" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/TodoListController.cs</url>
+          <line>123</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\TodoListController.cs" containingFunctionPresentation="Method 'Add'">
+            <startOffsets>
+              <option value="3494" />
+            </startOffsets>
+            <endOffsets>
+              <option value="3828" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="59" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ToDoAPI/API/ApiAuthController.cs</url>
+          <line>46</line>
+          <properties documentPath="D:\Codes\C#\Web-Technologies-hard-work\ToDo\ToDoAPI\API\ApiAuthController.cs" containingFunctionPresentation="Method 'Start'">
+            <startOffsets>
+              <option value="1828" />
+            </startOffsets>
+            <endOffsets>
+              <option value="1921" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="62" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

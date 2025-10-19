@@ -1,0 +1,141 @@
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
+using ToDoAPI.Model;
+using ToDoAPI.Settings;
+
+namespace ToDoApp.Services;
+
+public class MongoDbService
+{
+    private readonly IMongoCollection<TodoList> _lists;
+    private readonly IMongoCollection<TodoNote> _notes;
+
+    public MongoDbService(IOptions<MongoDbSettings> options)
+    {
+        var s = options.Value;
+        var client = new MongoClient(s.ConnectionString);
+        var db = client.GetDatabase(s.DatabaseName);
+
+        _lists = db.GetCollection<TodoList>(s.TodoListsCollection);
+        _notes = db.GetCollection<TodoNote>(s.TodoNotesCollection);
+    }
+
+    // --- TodoList operations ---
+    public async Task<List<TodoList>> GetAllListsAsync() =>
+        await (await _lists.FindAsync(_ => true)).ToListAsync();
+    
+    public async Task<List<TodoList>> GetAllListsByUserIdAsync(string? userId) =>
+        await (await _lists.FindAsync(list => list.OwnerId == userId)).ToListAsync();
+
+    public async Task<TodoList> FindListAsync(string id)
+    {
+        var filter = Builders<TodoList>.Filter.Eq(l => l.Id, id);
+        var list = await _lists.Find(filter).FirstOrDefaultAsync();
+        return list ?? throw new InvalidOperationException($"List {id} not found");
+    }
+
+    public async Task<TodoList> CreateListAsync(string ownerId, string name)
+    {
+        var list = new TodoList(ownerId, name);
+        await _lists.InsertOneAsync(list);
+        return list;
+    }
+
+    public async Task<TodoList> DeleteListAsync(string id)
+    {
+        var filter = Builders<TodoList>.Filter.Eq(l => l.Id, id);
+        var result = await _lists.FindOneAndDeleteAsync(filter);
+        return result ?? throw new InvalidOperationException($"List {id} not found");
+    }
+
+    public async Task<TodoList> AddNoteToListAsync(string listId, string noteId)
+    {
+        var filter = Builders<TodoList>.Filter.Eq(l => l.Id, listId);
+        var update = Builders<TodoList>.Update.AddToSet(l => l.NoteIds, noteId);
+        var options = new FindOneAndUpdateOptions<TodoList> { ReturnDocument = ReturnDocument.After };
+        var updated = await _lists.FindOneAndUpdateAsync(filter, update, options);
+        return updated ?? throw new InvalidOperationException($"List {listId} not found");
+    }
+
+    public async Task<TodoList> RemoveNoteFromListAsync(string listId, string noteId)
+    {
+        var filter = Builders<TodoList>.Filter.Eq(l => l.Id, listId);
+        var update = Builders<TodoList>.Update.Pull(l => l.NoteIds, noteId);
+        var options = new FindOneAndUpdateOptions<TodoList> { ReturnDocument = ReturnDocument.After };
+        var updated = await _lists.FindOneAndUpdateAsync(filter, update, options);
+        return updated ?? throw new InvalidOperationException($"List {listId} not found");
+    }
+
+    // --- TodoNote operations ---
+    public async Task<TodoNote> FindNoteAsync(string id)
+    {
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, id);
+        var note = await _notes.Find(filter).FirstOrDefaultAsync();
+        return note ?? throw new InvalidOperationException($"Note {id} not found");
+    }
+
+    public async Task<TodoNote> CreateNoteAsync(TodoNote note)
+    {
+        // Ensure Id and CreationDate if not set
+        if (string.IsNullOrWhiteSpace(note.Id))
+            note.Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
+        note.CreationDate ??= DateTime.UtcNow;
+
+        await _notes.InsertOneAsync(note);
+        return note;
+    }
+
+    public async Task<TodoNote> UpdateNoteAsync(TodoNote note)
+    {
+        if (string.IsNullOrWhiteSpace(note.Id))
+            throw new ArgumentException("Note.Id must be set for update");
+
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, note.Id);
+        var result = await _notes.ReplaceOneAsync(filter, note);
+
+        if (result.MatchedCount == 0)
+            throw new InvalidOperationException($"Note {note.Id} not found");
+
+        return await FindNoteAsync(note.Id!);
+    }
+
+    public async Task<TodoNote> DeleteNoteAsync(string id)
+    {
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, id);
+        var deleted = await _notes.FindOneAndDeleteAsync(filter);
+        return deleted ?? throw new InvalidOperationException($"Note {id} not found");
+    }
+
+    public async Task<TodoNote> PatchNoteContentAsync(string id, string content)
+    {
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, id);
+        var update = Builders<TodoNote>.Update.Set(n => n.Content, content);
+        var options = new FindOneAndUpdateOptions<TodoNote> { ReturnDocument = ReturnDocument.After };
+        var updated = await _notes.FindOneAndUpdateAsync(filter, update, options);
+        return updated ?? throw new InvalidOperationException($"Note {id} not found");
+    }
+
+    public async Task<TodoNote> PatchNoteEndDateAsync(string id, DateTime endDate)
+    {
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, id);
+        var update = Builders<TodoNote>.Update.Set(n => n.EndDate, endDate);
+        var options = new FindOneAndUpdateOptions<TodoNote> { ReturnDocument = ReturnDocument.After };
+        var updated = await _notes.FindOneAndUpdateAsync(filter, update, options);
+        return updated ?? throw new InvalidOperationException($"Note {id} not found");
+    }
+
+    public async Task<TodoNote> PatchNoteStatusAsync(string id, TodoStatus status)
+    {
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, id);
+        var update = Builders<TodoNote>.Update.Set(n => n.Status, status);
+        var options = new FindOneAndUpdateOptions<TodoNote> { ReturnDocument = ReturnDocument.After };
+        var updated = await _notes.FindOneAndUpdateAsync(filter, update, options);
+        return updated ?? throw new InvalidOperationException($"Note {id} not found");
+    }
+
+    public async Task<List<string>> GetNoteIdsForListAsync(string listId)
+    {
+        var list = await FindListAsync(listId);
+        return list.NoteIds is null ? new List<string>() : new List<string>(list.NoteIds);
+    }
+}

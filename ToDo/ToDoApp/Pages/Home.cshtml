@@ -10,6 +10,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="/images/logo.svg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>To‑Do — Home</title>
     <style>
         :root{font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111}
@@ -32,6 +34,17 @@
     </style>
 </head>
 <body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center ms-auto">
+            <img id="userIcon" src="/Account/Get/UserPhoto" class="rounded-circle me-2" style="width:32px; height:32px;" alt="User Icon">
+            <span id="userName" class="me-3 fw-semibold"></span>
+            <button id="logoutBtn" class="btn btn-outline-danger btn-sm">Logout</button>
+        </div>
+    </div>
+</nav>
+
 <div class="container" role="main">
     <header>
         <h1>My To‑Do Lists</h1>
@@ -39,9 +52,8 @@
     </header>
 
     <section class="flex" style="margin-top:16px;">
-        <input id="listNameInput" type="text" placeholder="New list name" aria-label="New list name" style="padding:8px;border-radius:8px;border:1px solid #e6ecff;flex:1;" />
+        <input id="listNameInput" type="text" placeholder="New list name" aria-label="New list name" style="padding:8px;border-radius:8px;border:1px solid #e6ecff;flex:1;"/>
         <button id="createListBtn" class="btn btn-primary btn-small">Create List</button>
-        <button id="refreshListsBtn" class="btn btn-ghost btn-small">Refresh</button>
     </section>
 
     <section aria-label="Lists" style="padding:12px;">
@@ -63,76 +75,7 @@
 
 </div>
 
-<script>
-    const listsEndpoint = '/api/TodoList';
-
-    const listsContainer = document.getElementById('listsContainer');
-    const listCardTemplate = document.getElementById('listCardTemplate');
-
-    async function fetchLists(){
-        try{
-            const res = await fetch(listsEndpoint);
-            if(!res.ok) throw new Error('could not load lists');
-            const data = await res.json();
-            renderLists(data || []);
-        }catch(e){
-            listsContainer.innerHTML = '<div class="empty">Unable to load lists.</div>';
-            console.error(e);
-        }
-    }
-
-    function renderLists(items){
-        listsContainer.innerHTML = '';
-        if(!items.length){
-            listsContainer.innerHTML = '<div class="empty">No lists yet. Create one!</div>';
-            return;
-        }
-        items.forEach(item=>{
-            const node = listCardTemplate.content.cloneNode(true);
-            const card = node.querySelector('.list-card');
-            card.dataset.id = item.id;
-            card.querySelector('.list-title').textContent = item.name;
-            card.querySelector('.count').textContent = item.count ?? 0;
-
-            node.querySelector('.btn-open').addEventListener('click', ()=>{
-                // navigate to ListDetails page — list ID passed as query string
-                window.location.href = `/ListDetails?id=${encodeURIComponent(item.id)}`;
-            });
-
-            node.querySelector('.btn-delete-list').addEventListener('click', async ()=>{
-                if(!confirm('Delete list "' + item.name + '"?')) return;
-                await deleteList(item.id);
-                await fetchLists();
-            });
-
-            listsContainer.appendChild(node);
-        });
-    }
-
-    async function createList(name){
-        try{
-            // Quick server-compatible call: send name in query string
-            const res = await fetch(`${listsEndpoint}?name=${encodeURIComponent(name)}`, { method: 'POST' });
-            if(!res.ok) throw new Error('create list failed');
-            await fetchLists();
-        }catch(e){alert('Unable to create list'); console.error(e);}        }
-
-    async function deleteList(id){
-        try{
-            const res = await fetch(`${listsEndpoint}/${id}`, { method:'DELETE' });
-            if(!res.ok) throw new Error('delete failed');
-        }catch(e){console.error(e);}        }
-
-    // UI events
-    document.getElementById('createListBtn').addEventListener('click', ()=>{
-        const name = document.getElementById('listNameInput').value.trim();
-        if(!name) return; createList(name); document.getElementById('listNameInput').value = '';
-    });
-
-    document.getElementById('refreshListsBtn').addEventListener('click', ()=>fetchLists());
-
-    // initial load
-    fetchLists();
-</script>
+<script src="~/js/home.js"></script>
+<script src="~/js/account.js"></script>
 </body>
 </html>
