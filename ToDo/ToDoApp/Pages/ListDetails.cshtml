@@ -11,43 +11,347 @@
     <title>ToDo List Details</title>
     <link rel="icon" type="image/x-icon" href="/images/logo.svg">
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root{font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111}
-        body{margin:0;padding:0;background:#f6f7fb}
-        .container{max-width:1200px;margin:8px auto;padding:18px;background:#fff;border-radius:12px;box-shadow:0 8px 28px rgba(10,20,40,.06)}
-        header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-        h1{margin:0;font-size:1.25rem}
-        .controls{display:flex;gap:8px;align-items:center}
-        input[type="text"]{padding:8px;border-radius:8px;border:1px solid #e6ecff;min-width:220px}
-        .btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
-        .btn-primary{background:#3b82f6;color:#fff}
-        .btn-ghost{background:transparent;border:1px solid #e6eaf7}
-        /* ensure consistent 4 columns layout that won't collapse */
-        .board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
-        .column{background:#fbfdff;border-radius:10px;padding:10px;border:1px solid #eef3ff;min-height:180px;display:flex;flex-direction:column}
-        .col-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-        .col-title{font-weight:600;font-size:0.95rem}
-        .col-count{font-size:0.85rem;color:#6b7280}
-        .col-add{padding:6px 8px;border-radius:8px;border:0;background:#eef2ff;cursor:pointer}
-        .card{background:#fff;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid #f0f4ff;box-shadow:0 4px 10px rgba(10,20,50,.03);display:flex;justify-content:space-between;align-items:flex-start}
-        .card .left{max-width:78%}
-        .card .title{font-weight:600;margin-bottom:6px}
-        .card .meta{font-size:0.85rem;color:#6b7280}
-        .card .actions{display:flex;gap:6px}
-        .small{font-size:.85rem;color:#6b7280}
-        .status-select{padding:6px;border-radius:6px;border:1px solid #e8eefc;background:#fff}
-        .empty{padding:12px;text-align:center;color:#6b7280}
+        :root {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #111;
+}
 
-        /* Modal styles */
-        .modal-backdrop{position:fixed;inset:0;background:rgba(8,12,24,0.45);display:none;align-items:center;justify-content:center;z-index:60}
-        .modal{width:520px;background:#fff;border-radius:10px;padding:16px;box-shadow:0 10px 40px rgba(10,20,50,.2)}
-        .modal h3{margin:0 0 8px}
-        .modal label{display:block;margin:8px 0 4px}
-        .modal input, .modal textarea, .modal select{width:100%;padding:8px;border:1px solid #dde6fb;border-radius:6px;box-sizing:border-box}
-        .modal .row{display:flex;gap:8px}
-        .modal .row .col{flex:1}
-        .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-        .hidden{display:none}
+body {
+    margin: 0;
+    padding: 0;
+    background: #f6f7fb;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 16px auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(10, 20, 40, 0.06);
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+input[type="text"] {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e6ecff;
+    min-width: 220px;
+    font-size: 14px;
+}
+
+.btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid #e6eaf7;
+    color: #111;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.column {
+    background: #fbfdff;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #eef3ff;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.column:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.col-title {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.col-count {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.col-add {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 0;
+    background: #eef2ff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #f0f4ff;
+    box-shadow: 0 4px 10px rgba(10,20,50,0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(10,20,50,0.06);
+}
+
+.card .left {
+    max-width: 78%;
+}
+
+.card .title {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+.card .meta {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.card .actions {
+    display: flex;
+    gap: 6px;
+}
+
+.small {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.status-select {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #e8eefc;
+    background: #fff;
+}
+
+.empty {
+    padding: 12px;
+    text-align: center;
+    color: #6b7280;
+}
+
+/* Modal tweaks to match "big" style */
+.custom-modal-backdrop,
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(8,12,24,0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+}
+
+.custom-modal,
+.modal,
+.modal-large {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 800px;
+    width: 90%;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Modal inputs */
+.modal-large input,
+.modal-large textarea,
+.modal-large select,
+.custom-modal input,
+.custom-modal textarea,
+.custom-modal select {
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.modal-large input:focus,
+.modal-large textarea:focus,
+.modal-large select:focus,
+.custom-modal input:focus,
+.custom-modal textarea:focus,
+.custom-modal select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+}
+
+/* Modal header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #111;
+}
+
+/* Modal body panels */
+.modal-body {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.modal-left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.modal-left-panel textarea {
+    resize: vertical;
+    min-height: 120px;
+    max-height: 400px;
+    width: 100%;
+    overflow-y: auto;
+    font-size: 14px;
+}
+
+.modal-right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 240px;
+    background: #f9f9f9;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    box-sizing: border-box;
+}
+
+.modal-right-panel label {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+/* Modal footer with delete left, others right */
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.modal-footer .right-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.modal-footer button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-delete {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+}
+
+.btn-delete:hover {
+    background-color: #c0392b;
+}
+
+.btn-primary {
+    background-color: #3b82f6;
+    color: #fff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.btn-secondary {
+    background-color: #f3f4f6;
+    color: #111;
+    border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+    background-color: #e5e7eb;
+}
     </style>
 </head>
 <body>
@@ -78,9 +382,8 @@
     </div>
 </div>
 
-<!-- Modal (inline) for creating a note -->
-<div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
-    <div class="modal" role="document" aria-labelledby="modalTitle">
+<div id="modalBackdrop" class="custom-modal-backdrop" style="display:none">
+    <div class="custom-modal" role="document" aria-labelledby="modalTitle">
         <h3 id="modalTitle">Create note</h3>
         <label for="modalTitleInput">Title</label>
         <input id="modalTitleInput"/>
@@ -107,6 +410,45 @@
         </div>
     </div>
 </div>
+
+
+<div id="editModalBackdrop" class="modal-backdrop" style="display:none">
+    <div class="modal-large">
+        <div class="modal-header">
+            <h2 contenteditable="false">Edit Task</h2>
+        </div>
+        <div class="modal-body">
+            <div class="modal-left-panel">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 id="editModalTitle" contenteditable="true">Note Title</h2>
+                </div>
+                <textarea id="editModalContext" placeholder="Enter note content here..."></textarea>
+            </div>
+            <div class="modal-right-panel">
+                <label>Status</label>
+                <select id="editModalStatus"></select>
+
+                <label>Start Date</label>
+                <input type="datetime-local" id="editModalStart">
+
+                <label>End Date</label>
+                <input type="datetime-local" id="editModalEnd">
+            </div>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+            <!-- Left side: Delete button -->
+            <button id="modalDeleteBtn" class="btn-delete">Delete</button>
+
+            <!-- Right side: Update / Close buttons -->
+            <div style="display:flex; gap:8px;">
+                <button id="editModalUpdate" class="btn btn-primary">Update</button>
+                <button id="editModalCancel" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 
 <script src="~/js/listDetails.js"></script>
 <script src="~/js/account.js"></script>

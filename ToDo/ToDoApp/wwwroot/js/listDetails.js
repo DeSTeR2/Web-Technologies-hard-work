@@ -17,6 +17,16 @@ const modalStatusSelect = document.getElementById('modalStatusSelect');
 const modalCancel = document.getElementById('modalCancel');
 const modalCreate = document.getElementById('modalCreate');
 
+const editModalBackdrop = document.getElementById('editModalBackdrop');
+const editModalTitle = document.getElementById('editModalTitle');
+const editModalContext = document.getElementById('editModalContext');
+const editModalStatus = document.getElementById('editModalStatus');
+const editModalStart = document.getElementById('editModalStart');
+const editModalEnd = document.getElementById('editModalEnd');
+const editModalUpdate = document.getElementById('editModalUpdate');
+const editModalCancel = document.getElementById('editModalCancel');
+const modalDeleteBtn = document.getElementById('modalDeleteBtn');
+
 let listId = null;
 let modalMode = 'create'; 
 let editingItem = null;
@@ -111,7 +121,7 @@ async function loadTodos(noteIds){
             title: n.name ?? n.Name ?? n.title ?? n.Title ?? '',
             content: n.content ?? n.Content ?? n.Context ?? '',
             endDate: n.endDate ?? n.EndDate ?? n.EndedAt ?? null,
-            status: (typeof n.status !== 'undefined') ? n.status : (typeof n.Status !== 'undefined' ? n.Status : 0)
+            status: n.status ?? n.Status ?? 0
         }));
 
         renderBoard(notes);
@@ -126,7 +136,7 @@ function renderCard(item) {
     card.className = 'card';
     card.dataset.id = item.id;
 
-    const maxLength = 60;
+    const maxLength = 20;
     const previewContent = item.content
         ? (item.content.length > maxLength ? item.content.slice(0, maxLength) + '...' : item.content)
         : '';
@@ -134,58 +144,19 @@ function renderCard(item) {
     card.innerHTML = `
         <div class="left">
             <div class="title" contenteditable="true">${escapeHtml(item.title)}</div>
-            <div class="content" contenteditable="true">${escapeHtml(previewContent)}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-            <div class="status-display" style="cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid #e0e0e0;">
-                ${escapeHtml(statusNames[item.status] || 'Unknown')}
-            </div>
-            <div class="actions" style="display:flex;gap:6px;margin-top:6px">
-                <button class="btn btn-ghost btn-delete">Delete</button>
-            </div>
+            <div class="content">${escapeHtml(previewContent)}</div>
         </div>
     `;
-    card.querySelector('.left').addEventListener('click', () => openEditModal(item));
-    card.querySelector('.status-display').addEventListener('click', () => openEditModal(item));
 
-    const titleEl = card.querySelector('.title');
-    titleEl.addEventListener('blur', async (e) => {
-        const newTitle = e.target.textContent.trim();
-        if(newTitle && newTitle !== item.title){
-            try { await updateTodoContent(item.id, newTitle); item.title = newTitle; } 
-            catch(err){ console.error(err); e.target.textContent = item.title; alert('Unable to save title'); }
-        } else e.target.textContent = item.title;
+    // Open **big edit modal** on card click
+    card.addEventListener('click', (e) => {
+        openEditModalBig(item);
     });
-
-    const contentEl = card.querySelector('.content');
-    contentEl.addEventListener('blur', async (e) => {
-        const newContent = e.target.textContent.trim();
-        if(newContent !== item.content){
-            try { await updateTodoContent(item.id, newContent); item.content = newContent; } 
-            catch(err){ 
-                console.error(err); 
-                e.target.textContent = item.content ? (item.content.length > maxLength ? item.content.slice(0, maxLength) + '...' : item.content) : ''; 
-                alert('Unable to save content');
-            }
-        } else {
-            e.target.textContent = item.content ? (item.content.length > maxLength ? item.content.slice(0, maxLength) + '...' : item.content) : '';
-        }
-    });
-
-    card.querySelector('.btn-delete').addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if(!confirm('Delete this task?')) return;
-        try{
-            await deleteTodo(item.id);
-            await loadList();
-        } catch(err){
-            console.error(err);
-            alert('Unable to delete task');
-        }
-    });
+    
 
     return card;
 }
+
 
 function renderBoard(items){
     buildColumns();
@@ -425,7 +396,83 @@ async function deleteTodo(id){
     }
 }
 
-modalCancel.addE\ventListener('click', ()=> closeCreateModal());
+
+// Edit modal elements
+
+
+// Populate status dropdown
+VisibleStatuses.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = statusNames[s];
+    editModalStatus.appendChild(opt);
+});
+
+let editingNote = null;
+
+function openEditModalBig(note){
+    editingNote = note;
+
+    editModalTitle.textContent = note.title ?? '';
+    editModalContext.value = note.content ?? '';
+    editModalStatus.value = String(note.status ?? VisibleStatuses[0]);
+    editModalStart.value = note.startDate ? new Date(note.startDate).toISOString().slice(0,16) : '';
+    editModalEnd.value = note.endDate ? new Date(note.endDate).toISOString().slice(0,16) : '';
+
+    editModalBackdrop.style.display = 'flex';
+}
+
+function closeEditModal(){
+    editModalBackdrop.style.display = 'none';
+    editingNote = null;
+}
+
+editModalCancel.addEventListener('click', closeEditModal);
+editModalBackdrop.addEventListener('click', e => { if(e.target === editModalBackdrop) closeEditModal(); });
+modalDeleteBtn.addEventListener('click', async () => {
+    if(!editingItem) return;
+    if(!confirm('Are you sure you want to delete this note?')) return;
+    
+    try {
+        await deleteTodo(editingItem.id);
+        closeCreateModal();
+        await loadList();
+    } catch(err) {
+        console.error(err);
+        alert('Unable to delete note');
+    }
+});
+
+editModalUpdate.addEventListener('click', async () => {
+    if(!editingNote) return;
+    const newTitle = editModalTitle.textContent.trim();
+    const ModalContext = editModalContext.value.trim();
+    const newStatus = Number(editModalStatus.value);
+    const newStart = editModalStart.value ? new Date(editModalStart.value).toISOString() : null;
+    const newEnd = editModalEnd.value ? new Date(editModalEnd.value).toISOString() : null;
+
+    try {
+        if(newTitle !== editingNote.title) await updateTodoTitle(editingNote.id, newTitle);
+        if(ModalContext !== editingNote.context) await updateTodoContent(editingNote.id, ModalContext);
+        if(newStatus !== editingNote.status) await updateTodoStatus(editingNote.id, newStatus);
+        if(newEnd !== editingNote.endDate && newEnd !== null) await updateTodoEndDate(editingNote.id, newEnd);
+        // content is kept only in frontend, no need to save to DB
+        editingNote.title = newTitle;
+        editingNote.status = newStatus;
+        editingNote.endDate = newEnd;
+        editingNote.context = ModalContext;
+    } catch(e){
+        console.error(e);
+        alert('Failed to update note.');
+    } finally {
+        closeEditModal();
+        await loadList();
+    }
+});
+
+
+modalCancel.addEventListener('click', ()=> closeCreateModal());
 backBtn.addEventListener('click', ()=> window.location.href = '/MainPage');
 
-if(listId) loadList();
+if(listId) 
+    loadList();
