@@ -8,6 +8,8 @@
     ".NETCoreApp,Version=v9.0": {
       "ToDoApp/1.0.0": {
         "dependencies": {
+          "AWSSDK.Extensions.NETCore.Setup": "4.0.3.7",
+          "AWSSDK.S3": "4.0.7.13",
           "Microsoft.AspNetCore.Authentication": "2.3.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "9.0.0",
           "Microsoft.AspNetCore.OpenApi": "9.0.2",
@@ -23,6 +25,39 @@
         },
         "runtime": {
           "ToDoApp.dll": {}
+        }
+      },
+      "AWSSDK.Core/4.0.1.1": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.1.1"
+          }
+        }
+      },
+      "AWSSDK.Extensions.NETCore.Setup/4.0.3.7": {
+        "dependencies": {
+          "AWSSDK.Core": "4.0.1.1",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.0-rc.2.25502.107",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.0-rc.2.25502.107",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.0-rc.2.25502.107"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.Extensions.NETCore.Setup.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.3.7"
+          }
+        }
+      },
+      "AWSSDK.S3/4.0.7.13": {
+        "dependencies": {
+          "AWSSDK.Core": "4.0.1.1"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.S3.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.7.13"
+          }
         }
       },
       "Azure.Core/1.38.0": {
@@ -1625,6 +1660,8 @@
       },
       "ToDoAPI/1.0.0": {
         "dependencies": {
+          "AWSSDK.Extensions.NETCore.Setup": "4.0.3.7",
+          "AWSSDK.S3": "4.0.7.13",
           "Microsoft.AspNetCore.Authentication.Cookies": "2.3.0",
           "Microsoft.AspNetCore.DataProtection": "10.0.0-rc.2.25502.107",
           "Microsoft.AspNetCore.Mvc.Core": "2.3.0",
@@ -1648,6 +1685,27 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AWSSDK.Core/4.0.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RBaHkOZQ/cb84H6o2tNvyZv2Gv/lDOok5CgE6gJV2JC2s67mkBAAPWpPrqTDUH86ogmWFA8u8+37u1fvlj4nAA==",
+      "path": "awssdk.core/4.0.1.1",
+      "hashPath": "awssdk.core.4.0.1.1.nupkg.sha512"
+    },
+    "AWSSDK.Extensions.NETCore.Setup/4.0.3.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LBXJ0hb2KFlLgHNvih6+tM7sSnuolZptW4QEkXIqowl0oUF50P7q3k3T2v7uZ2iP1+t9cqQFpHRU9EIvNxcCJQ==",
+      "path": "awssdk.extensions.netcore.setup/4.0.3.7",
+      "hashPath": "awssdk.extensions.netcore.setup.4.0.3.7.nupkg.sha512"
+    },
+    "AWSSDK.S3/4.0.7.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-2seb5U8HWVgIlu5iXYgrsp6uo/pu9QjYUCxWlEdMtcBiqMBRfiYuPcTsky5UWne5nt1U/3WtQIGwy1hyTHjdyA==",
+      "path": "awssdk.s3/4.0.7.13",
+      "hashPath": "awssdk.s3.4.0.7.13.nupkg.sha512"
     },
     "Azure.Core/1.38.0": {
       "type": "package",

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ToDoAPI.Model;
-using ToDoApp.Services;
+using ToDoAPI.Settings;
 
 namespace ToDoAPI.API
 {
@@ -29,12 +29,110 @@ namespace ToDoAPI.API
             }
         }
 
-        [HttpPatch("{id}/{content}")]
-        public async Task<IActionResult> UpdateContext(string id, string content)
+        [HttpPost("{listId}")]
+        public async Task<IActionResult> Add(string listId, [FromQuery] string name, [FromQuery] string context, [FromQuery] TodoStatus status = TodoStatus.Waiting, [FromQuery] DateTime endDate = default)
         {
             try
             {
-                var updated = await _mongo.PatchNoteContentAsync(id, content);
+                var builder = new TodoNote.Builder();
+                if (!string.IsNullOrWhiteSpace(name))
+                    builder.AddName(name);
+
+                if (!string.IsNullOrWhiteSpace(context))
+                    builder.AddContent(context);
+
+                if (endDate != default)
+                    builder.AddEndDate(endDate);
+
+                builder.AddStatus(status);
+
+                var note = builder.Build();
+                await _mongo.CreateNoteAsync(note);
+
+                await _mongo.AddNoteToListAsync(listId, note.Id!);
+
+                return Ok(note.Id);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        public class CreateNoteDto
+        {
+            public string? ClientId { get; set; }      
+            public string? Name { get; set; }
+            public string? Content { get; set; }
+            public TodoStatus Status { get; set; } = TodoStatus.Waiting;
+            public DateTime? EndDate { get; set; }
+        }
+
+        [HttpPost("{listId}/notes")]
+        public async Task<IActionResult> CreateAndAttachNote(string listId, [FromBody] CreateNoteDto dto)
+        {
+            if (dto == null) return BadRequest("Request body is required.");
+
+            if (!string.IsNullOrWhiteSpace(dto.ClientId))
+            {
+                try
+                {
+                    var existing = await _mongo.FindNoteAsync(dto.ClientId);
+                    try { await _mongo.AddNoteToListAsync(listId, existing.Id!); } catch { /* non-fatal */ }
+                    return Ok(new { id = existing.Id });
+                }
+                catch
+                {
+                }
+            }
+
+            var builder = new TodoNote.Builder();
+            if (!string.IsNullOrWhiteSpace(dto.Name)) builder.AddName(dto.Name);
+            if (!string.IsNullOrWhiteSpace(dto.Content)) builder.AddContent(dto.Content);
+            if (dto.EndDate.HasValue) builder.AddEndDate(dto.EndDate.Value);
+            builder.AddStatus(dto.Status);
+
+            var note = builder.Build();
+
+            if (!string.IsNullOrWhiteSpace(dto.ClientId))
+            {
+                note.Id = dto.ClientId;
+            }
+
+            try
+            {
+                await _mongo.CreateNoteAsync(note);
+            }
+            catch (InvalidOperationException ex)
+            {
+                try
+                {
+                    var existing = await _mongo.FindNoteAsync(note.Id!);
+                    await _mongo.AddNoteToListAsync(listId, existing.Id!);
+                    return Ok(new { id = existing.Id });
+                }
+                catch
+                {
+                    return StatusCode(500, "Failed to create or recover existing note: " + ex.Message);
+                }
+            }
+
+            await _mongo.AddNoteToListAsync(listId, note.Id!);
+
+            return CreatedAtAction(nameof(Get), new { id = note.Id }, new { id = note.Id });
+        }
+
+        public class PatchContentDto { public string? Content { get; set; } }
+
+        [HttpPatch("{id}/content")]
+        public async Task<IActionResult> PatchContent(string id, [FromBody] PatchContentDto dto)
+        {
+            if (dto == null) return BadRequest("Body required");
+            if (dto.Content == null) return BadRequest("content required");
+
+            try
+            {
+                var updated = await _mongo.PatchNoteContentAsync(id, dto.Content);
                 return Ok(updated);
             }
             catch (Exception e)
@@ -43,6 +141,20 @@ namespace ToDoAPI.API
             }
         }
 
+        [HttpPatch("{id}/title")]
+        public async Task<IActionResult> UpdateContextWithTitle(string id, [FromQuery] string title)
+        {
+            try
+            {
+                var updated = await _mongo.PatchNoteTitleAsync(id, title);
+                return Ok(updated);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+        
         [HttpPatch("{id}/enddate")]
         public async Task<IActionResult> UpdateContextWithEndDate(string id, [FromQuery] DateTime endDate)
         {
@@ -68,37 +180,6 @@ namespace ToDoAPI.API
             catch (Exception e)
             {
                 return NotFound(e.Message);
-            }
-        }
-
-        [HttpPost("{listId}")]
-        public async Task<IActionResult> Add(string listId, [FromQuery] string name, [FromQuery] string context, [FromQuery] TodoStatus status, [FromQuery] DateTime endDate)
-        {
-            try
-            {
-                var builder = new TodoNote.Builder();
-                if (!string.IsNullOrWhiteSpace(name))
-                    builder.AddName(name);
-
-                if (!string.IsNullOrWhiteSpace(context))
-                    builder.AddContent(context);
-
-                if (endDate != default)
-                    builder.AddEndDate(endDate);
-
-                builder.AddStatus(status);
-
-                var note = builder.Build();
-                await _mongo.CreateNoteAsync(note);
-
-                // add note id to list (silently ignore failure to add to list? we bubble exception)
-                await _mongo.AddNoteToListAsync(listId, note.Id!);
-
-                return Ok(note.Id);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
             }
         }
 

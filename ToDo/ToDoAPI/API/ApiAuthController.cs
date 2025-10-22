@@ -18,7 +18,6 @@ namespace ToDoAPI.API
         [HttpGet("start")]
         public IActionResult Start([FromQuery] string scope = "")
         {
-            // Ensure picture scope is included
             var scopes = string.IsNullOrWhiteSpace(scope) ? new[] { "openid", "profile", "email", "https://www.googleapis.com/auth/userinfo.profile" } 
                 : scope.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 

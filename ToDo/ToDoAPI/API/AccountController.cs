@@ -47,7 +47,6 @@ public class AccountController : Controller
         dynamic o = Newtonsoft.Json.JsonConvert.DeserializeObject(await resp.Content.ReadAsStringAsync());
         string pictureUrl = o.picture;
 
-        // fetch the actual image bytes
         var imgBytes = await http.GetByteArrayAsync(pictureUrl);
         return File(imgBytes, "image/jpeg");
     }

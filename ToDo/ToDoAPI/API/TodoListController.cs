@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using ToDoAPI.Settings;
 using ToDoAPI.Tool;
-using ToDoApp.Services;
 
 namespace ToDoAPI.API
 {
@@ -76,8 +76,6 @@ namespace ToDoAPI.API
         [HttpGet("user/{id}")]
         public async Task<IActionResult> GetByUserId(string id)
         {
-            // The old method attempted FindListAsync(id) — that looked like a mistake.
-            // Here we return lists filtered by OwnerId == id.
             try
             {
                 var filterLists = await _mongo.GetAllListsAsync();

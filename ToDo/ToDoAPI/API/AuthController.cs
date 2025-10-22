@@ -46,13 +46,12 @@ namespace ToDoAPI.API
 
             await _tokenStore.SaveAsync(user.Id!, tokens);
 
-            // Add claims, including picture
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id!),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.DisplayName ?? user.Email),
-                new Claim("picture", userInfo.Value.Picture ?? "") // <-- add picture claim
+                new Claim("picture", userInfo.Value.Picture ?? "") 
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -68,7 +67,6 @@ namespace ToDoAPI.API
             return Redirect("/Home");
         }
 
-        // Updated FetchGoogleUserInfoAsync to return picture
         private async Task<(string Email, string? Name, string? Picture)?> FetchGoogleUserInfoAsync(string accessToken)
         {
             using var http = new HttpClient();
@@ -81,7 +79,7 @@ namespace ToDoAPI.API
 
             string email = o.email;
             string name = o.name;
-            string picture = o.picture; // <-- get profile picture
+            string picture = o.picture; 
 
             return (email, name, picture);
         }

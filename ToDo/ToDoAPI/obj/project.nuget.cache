@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "i3Sz6zBzJcU=",
+  "dgSpecHash": "z8D1gYutco8=",
   "success": true,
   "projectFilePath": "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoAPI\\ToDoAPI.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\38095\\.nuget\\packages\\awssdk.core\\4.0.1.1\\awssdk.core.4.0.1.1.nupkg.sha512",
+    "C:\\Users\\38095\\.nuget\\packages\\awssdk.extensions.netcore.setup\\4.0.3.7\\awssdk.extensions.netcore.setup.4.0.3.7.nupkg.sha512",
+    "C:\\Users\\38095\\.nuget\\packages\\awssdk.s3\\4.0.7.13\\awssdk.s3.4.0.7.13.nupkg.sha512",
     "C:\\Users\\38095\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\38095\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\38095\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",

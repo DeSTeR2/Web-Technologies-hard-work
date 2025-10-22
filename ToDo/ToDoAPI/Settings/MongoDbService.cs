@@ -1,9 +1,8 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using ToDoAPI.Model;
-using ToDoAPI.Settings;
 
-namespace ToDoApp.Services;
+namespace ToDoAPI.Settings;
 
 public class MongoDbService
 {
@@ -20,7 +19,6 @@ public class MongoDbService
         _notes = db.GetCollection<TodoNote>(s.TodoNotesCollection);
     }
 
-    // --- TodoList operations ---
     public async Task<List<TodoList>> GetAllListsAsync() =>
         await (await _lists.FindAsync(_ => true)).ToListAsync();
     
@@ -66,7 +64,6 @@ public class MongoDbService
         return updated ?? throw new InvalidOperationException($"List {listId} not found");
     }
 
-    // --- TodoNote operations ---
     public async Task<TodoNote> FindNoteAsync(string id)
     {
         var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, id);
@@ -76,14 +73,15 @@ public class MongoDbService
 
     public async Task<TodoNote> CreateNoteAsync(TodoNote note)
     {
-        // Ensure Id and CreationDate if not set
         if (string.IsNullOrWhiteSpace(note.Id))
             note.Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
+
         note.CreationDate ??= DateTime.UtcNow;
 
         await _notes.InsertOneAsync(note);
         return note;
     }
+
 
     public async Task<TodoNote> UpdateNoteAsync(TodoNote note)
     {
@@ -91,13 +89,15 @@ public class MongoDbService
             throw new ArgumentException("Note.Id must be set for update");
 
         var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, note.Id);
-        var result = await _notes.ReplaceOneAsync(filter, note);
+        var opts = new ReplaceOptions { IsUpsert = false };
+        var result = await _notes.ReplaceOneAsync(filter, note, opts);
 
-        if (result.MatchedCount == 0)
+        if (result == null || result.MatchedCount == 0)
             throw new InvalidOperationException($"Note {note.Id} not found");
 
-        return await FindNoteAsync(note.Id!);
+        return await FindNoteAsync(note.Id);
     }
+
 
     public async Task<TodoNote> DeleteNoteAsync(string id)
     {
@@ -112,8 +112,13 @@ public class MongoDbService
         var update = Builders<TodoNote>.Update.Set(n => n.Content, content);
         var options = new FindOneAndUpdateOptions<TodoNote> { ReturnDocument = ReturnDocument.After };
         var updated = await _notes.FindOneAndUpdateAsync(filter, update, options);
-        return updated ?? throw new InvalidOperationException($"Note {id} not found");
+
+        if (updated == null)
+            throw new InvalidOperationException($"Note {id} not found (update returned null).");
+
+        return updated;
     }
+
 
     public async Task<TodoNote> PatchNoteEndDateAsync(string id, DateTime endDate)
     {
@@ -137,5 +142,34 @@ public class MongoDbService
     {
         var list = await FindListAsync(listId);
         return list.NoteIds is null ? new List<string>() : new List<string>(list.NoteIds);
+    }
+    
+    public async Task<int> RemoveDuplicateNotesAsync()
+    {
+        var all = await (await _notes.FindAsync(_ => true)).ToListAsync();
+        var groups = all.GroupBy(n => new { n.Content, n.CreationDate })
+            .Where(g => g.Count() > 1);
+
+        int removed = 0;
+        foreach (var g in groups)
+        {
+            var keep = g.OrderByDescending(n => n.CreationDate).First();
+            var duplicates = g.Where(n => n.Id != keep.Id);
+            foreach (var dup in duplicates)
+            {
+                await _notes.DeleteOneAsync(Builders<TodoNote>.Filter.Eq(x => x.Id, dup.Id));
+                removed++;
+            }
+        }
+        return removed;
+    }
+
+    public async Task<TodoNote> PatchNoteTitleAsync(string id, string title)
+    {
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, id);
+        var update = Builders<TodoNote>.Update.Set(n => n.Name, title);
+        var options = new FindOneAndUpdateOptions<TodoNote> { ReturnDocument = ReturnDocument.After };
+        var updated = await _notes.FindOneAndUpdateAsync(filter, update, options);
+        return updated ?? throw new InvalidOperationException($"Note {id} not found");
     }
 }

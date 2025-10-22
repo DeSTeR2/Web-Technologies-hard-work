@@ -1,10 +1,10 @@
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using ToDoAPI.Services;
 using ToDoAPI.Settings;
 using ToDoAPI.Tool;
-using ToDoApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +46,8 @@ builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<GoogleTokenStore>();
 builder.Services.AddSingleton<UserDataService>();
 builder.Services.AddSingleton<GoogleApiTokenProvider>();
+builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
