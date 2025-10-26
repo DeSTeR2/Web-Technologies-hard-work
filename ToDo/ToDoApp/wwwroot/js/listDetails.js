@@ -28,7 +28,7 @@ const editModalCancel = document.getElementById('editModalCancel');
 const modalDeleteBtn = document.getElementById('modalDeleteBtn');
 
 let listId = null;
-let modalMode = 'create'; 
+let modalMode = 'create';
 let editingItem = null;
 
 function setListId(id) {
@@ -120,6 +120,7 @@ async function loadTodos(noteIds){
             id: n.id ?? n.Id ?? n._id ?? n._Id,
             title: n.name ?? n.Name ?? n.title ?? n.Title ?? '',
             content: n.content ?? n.Content ?? n.Context ?? '',
+            startDate: n.startDate ?? n.StartDate ?? null,
             endDate: n.endDate ?? n.EndDate ?? n.EndedAt ?? null,
             status: n.status ?? n.Status ?? 0
         }));
@@ -152,7 +153,7 @@ function renderCard(item) {
     card.addEventListener('click', (e) => {
         openEditModalBig(item);
     });
-    
+
 
     return card;
 }
@@ -236,7 +237,7 @@ async function onModalCreateClick(){
                 if(title !== editingItem.title) await updateTodoTitle(editingItem.id, title);
                 if(context !== editingItem.content) await updateTodoContent(editingItem.id, context);
                 if(status !== editingItem.status) await updateTodoStatus(editingItem.id, status);
-                if(end !== editingItem.endDate && end !== null) await updateTodoEndDate(editingItem.id, end);
+                if(end !== editingItem.endDate && end !== null) await updateTodoDate(editingItem.id, end, Date.now());
             } catch(err){
                 console.error(err);
                 alert('Unable to save changes');
@@ -370,12 +371,12 @@ async function updateTodoStatus(id, status){
     }
 }
 
-async function updateTodoEndDate(id, endDateIso){
-    const url = `${todoApi}/${encodeURIComponent(id)}/enddate?endDate=${encodeURIComponent(endDateIso)}`;
+async function updateTodoDate(id, endDateIso, startDateIso){
+    const url = `${todoApi}/${encodeURIComponent(id)}/date?endDate=${encodeURIComponent(endDateIso)}&startDate=${encodeURIComponent(startDateIso)}`;
     const res = await fetch(url, { method: 'PATCH' });
     if(!res.ok){
         const t = await res.text().catch(()=>null);
-        console.error('updateTodoEndDate failed', res.status, t);
+        console.error('updateTodoDate failed', res.status, t);
         throw new Error('endDate update failed');
     }
 }
@@ -432,7 +433,7 @@ editModalBackdrop.addEventListener('click', e => { if(e.target === editModalBack
 modalDeleteBtn.addEventListener('click', async () => {
     if(!editingItem) return;
     if(!confirm('Are you sure you want to delete this note?')) return;
-    
+
     try {
         await deleteTodo(editingItem.id);
         closeCreateModal();
@@ -455,7 +456,7 @@ editModalUpdate.addEventListener('click', async () => {
         if(newTitle !== editingNote.title) await updateTodoTitle(editingNote.id, newTitle);
         if(ModalContext !== editingNote.context) await updateTodoContent(editingNote.id, ModalContext);
         if(newStatus !== editingNote.status) await updateTodoStatus(editingNote.id, newStatus);
-        if(newEnd !== editingNote.endDate && newEnd !== null) await updateTodoEndDate(editingNote.id, newEnd);
+        if(newEnd !== editingNote.endDate && newEnd !== null) await updateTodoDate(editingNote.id, newEnd, newStart);
         // content is kept only in frontend, no need to save to DB
         editingNote.title = newTitle;
         editingNote.status = newStatus;
@@ -474,5 +475,5 @@ editModalUpdate.addEventListener('click', async () => {
 modalCancel.addEventListener('click', ()=> closeCreateModal());
 backBtn.addEventListener('click', ()=> window.location.href = '/MainPage');
 
-if(listId) 
+if(listId)
     loadList();

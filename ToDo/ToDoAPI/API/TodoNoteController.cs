@@ -1,4 +1,6 @@
+using Google.Apis.Calendar.v3.Data;
 using Microsoft.AspNetCore.Mvc;
+using ToDoAPI.Controllers;
 using ToDoAPI.Model;
 using ToDoAPI.Settings;
 
@@ -9,8 +11,13 @@ namespace ToDoAPI.API
     public class TodoNoteController : ControllerBase
     {
         private readonly MongoDbService _mongo;
+        private readonly CalendarController _cal;
 
-        public TodoNoteController(MongoDbService mongo) => _mongo = mongo;
+        public TodoNoteController(MongoDbService mongo, CalendarController cal)
+        {
+            _cal = cal;
+            _mongo = mongo;
+        }
 
         [NonAction]
         public async Task<TodoNote> FindNoteAsync(string id) => await _mongo.FindNoteAsync(id);
@@ -61,7 +68,7 @@ namespace ToDoAPI.API
 
         public class CreateNoteDto
         {
-            public string? ClientId { get; set; }      
+            public string? ClientId { get; set; }
             public string? Name { get; set; }
             public string? Content { get; set; }
             public TodoStatus Status { get; set; } = TodoStatus.Waiting;
@@ -154,13 +161,45 @@ namespace ToDoAPI.API
                 return NotFound(e.Message);
             }
         }
-        
-        [HttpPatch("{id}/enddate")]
-        public async Task<IActionResult> UpdateContextWithEndDate(string id, [FromQuery] DateTime endDate)
+
+        [HttpPatch("{id}/date")]
+        public async Task<IActionResult> UpdateContextWithDate(string id, [FromQuery] DateTime endDate, [FromQuery] DateTime startDate)
         {
             try
             {
+                if (endDate == default || startDate == default)
+                    return BadRequest("Dates required");
+
                 var updated = await _mongo.PatchNoteEndDateAsync(id, endDate);
+                updated = await _mongo.PatchNoteStartDateAsync(id, startDate);
+
+                var meetingEvent = new Event
+                {
+                    Id = id,
+                    Summary = updated.Name,
+                    Description = updated.Content,
+                    Start = new EventDateTime
+                    {
+                        DateTime = startDate,
+                        TimeZone = "UTC" // Adjust the time zone accordingly
+                    },
+                    End = new EventDateTime
+                    {
+                        DateTime = endDate,
+                        TimeZone = "UTC" // Adjust the time zone accordingly
+                    },
+                    Reminders = new Event.RemindersData
+                    {
+                        UseDefault = false, // Set custom reminders
+                        Overrides = new List<EventReminder>
+                        {
+                            new EventReminder { Method = "popup", Minutes = 10 }, // Reminder 10 minutes before the meeting
+                            new EventReminder { Method = "email", Minutes = 30 } // Email reminder 30 minutes before the meeting
+                        }
+                    }
+                };
+                var googleEvent = await _cal.UpdateAsync(id, meetingEvent);
+
                 return Ok(updated);
             }
             catch (Exception e)
@@ -168,6 +207,7 @@ namespace ToDoAPI.API
                 return NotFound(e.Message);
             }
         }
+
 
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> UpdateContextWithStatus(string id, [FromQuery] TodoStatus status)

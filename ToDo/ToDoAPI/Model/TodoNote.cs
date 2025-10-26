@@ -28,6 +28,9 @@ namespace ToDoAPI.Model
         [BsonElement("Status")]
         public TodoStatus? Status { get; set; }
 
+        [BsonElement("GoogleCalendarEventIdg")]
+        public string GoogleCalendarEventId { get; set; }
+
         public class Builder
         {
             private readonly TodoNote _note = new();

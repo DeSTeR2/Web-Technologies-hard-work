@@ -10,9 +10,11 @@ public class AccountController : Controller
 {
     private readonly GoogleTokenStore _tokenStore;
     private readonly TokenProtector _tokenProtector;
+    private UserDataService _userDataService;
 
-    public AccountController(GoogleTokenStore tokenStore, TokenProtector tokenProtector)
+    public AccountController(GoogleTokenStore tokenStore, TokenProtector tokenProtector, UserDataService userDataService)
     {
+        _userDataService = userDataService;
         _tokenStore = tokenStore;
         _tokenProtector = tokenProtector;
     }
@@ -23,18 +25,18 @@ public class AccountController : Controller
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return Ok();
     }
-    
+
     [HttpGet("UserPhoto")]
     public async Task<IActionResult> Get()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = _userDataService.GetCurrentUserId();
         if (userId == null) return Unauthorized();
 
         var cred = await _tokenStore.GetByUserIdAsync(userId);
         if (cred == null) return NotFound();
 
-        var accessToken = cred.EncryptedAccessToken != null 
-            ? _tokenProtector.Unprotect(cred.EncryptedAccessToken) 
+        var accessToken = cred.EncryptedAccessToken != null
+            ? _tokenProtector.Unprotect(cred.EncryptedAccessToken)
             : null;
         if (accessToken == null) return NotFound();
 

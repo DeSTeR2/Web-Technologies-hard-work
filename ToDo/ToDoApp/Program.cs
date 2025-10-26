@@ -6,6 +6,15 @@ using ToDoAPI.Services;
 using ToDoAPI.Settings;
 using ToDoAPI.Tool;
 
+// === Google Calendar (NEW) ===
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using ToDoAPI.Controllers;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
@@ -39,6 +48,8 @@ builder.Services.AddSingleton(mongoDatabase);
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<MongoDbService>();
+builder.Services.AddScoped<GoogleCalendarService>();
+builder.Services.AddScoped<CalendarController>();
 
 builder.Services.AddDataProtection();
 builder.Services.AddSingleton<TokenProtector>();
@@ -57,6 +68,55 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.LoginPath = "/Login";
     });
+
+// ========= NEW: session (for PKCE code_verifier) =========
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+});
+
+// ========= NEW: Google Calendar OAuth & client =========
+// Reads your appsettings.json -> "GoogleCalendar": { client_id, client_secret, ... }
+var gcal = builder.Configuration.GetSection("GoogleCalendar");
+var googleClientId = gcal["client_id"];
+var googleClientSecret = gcal["client_secret"];
+
+// OAuth flow + token store (per-user)
+builder.Services.AddSingleton<GoogleAuthorizationCodeFlow>(_ =>
+    new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+    {
+        ClientSecrets = new ClientSecrets
+        {
+            ClientId = googleClientId,
+            ClientSecret = googleClientSecret
+        },
+        Scopes = new[] { CalendarService.Scope.Calendar },
+        DataStore = new FileDataStore("google-calendar-tokens", true) // persists refresh tokens
+    })
+);
+
+// Request-scoped CalendarService using current user's token (after OAuth callback)
+builder.Services.AddScoped<CalendarService>(sp =>
+{
+    var flow = sp.GetRequiredService<GoogleAuthorizationCodeFlow>();
+    var userId = sp.GetRequiredService<UserDataService>().GetCurrentUserId();
+
+    // Load token saved by your AuthController after exchanging code
+    var token = flow.DataStore.GetAsync<TokenResponse>(userId).GetAwaiter().GetResult();
+    if (token == null || (string.IsNullOrEmpty(token.RefreshToken) && string.IsNullOrEmpty(token.AccessToken)))
+        throw new InvalidOperationException("Google Calendar is not authorized for this user.");
+
+    var credential = new UserCredential(flow, userId, token);
+    return new CalendarService(new BaseClientService.Initializer
+    {
+        HttpClientInitializer = credential,
+        ApplicationName = "TodoList"
+    });
+});
+// ========================================================
 
 var app = builder.Build();
 
@@ -78,8 +138,10 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
+// === NEW: enable session before routing/controllers ===
+app.UseSession();
 
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -21,7 +21,7 @@ public class MongoDbService
 
     public async Task<List<TodoList>> GetAllListsAsync() =>
         await (await _lists.FindAsync(_ => true)).ToListAsync();
-    
+
     public async Task<List<TodoList>> GetAllListsByUserIdAsync(string? userId) =>
         await (await _lists.FindAsync(list => list.OwnerId == userId)).ToListAsync();
 
@@ -119,6 +119,14 @@ public class MongoDbService
         return updated;
     }
 
+    public async Task<TodoNote> PatchNoteStartDateAsync(string id, DateTime startDate)
+    {
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, id);
+        var update = Builders<TodoNote>.Update.Set(n => n.StartDate, startDate);
+        var options = new FindOneAndUpdateOptions<TodoNote> { ReturnDocument = ReturnDocument.After };
+        var updated = await _notes.FindOneAndUpdateAsync(filter, update, options);
+        return updated ?? throw new InvalidOperationException($"Note {id} not found");
+    }
 
     public async Task<TodoNote> PatchNoteEndDateAsync(string id, DateTime endDate)
     {
@@ -143,7 +151,7 @@ public class MongoDbService
         var list = await FindListAsync(listId);
         return list.NoteIds is null ? new List<string>() : new List<string>(list.NoteIds);
     }
-    
+
     public async Task<int> RemoveDuplicateNotesAsync()
     {
         var all = await (await _notes.FindAsync(_ => true)).ToListAsync();

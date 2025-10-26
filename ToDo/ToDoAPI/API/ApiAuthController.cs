@@ -13,12 +13,13 @@ namespace ToDoAPI.API
     public class ApiAuthController : ControllerBase
     {
         private const string CodeVerifierCookieName = "google_code_verifier";
-        private const int CodeVerifierTtlSeconds = 600; 
+        private const int CodeVerifierTtlSeconds = 600;
 
         [HttpGet("start")]
         public IActionResult Start([FromQuery] string scope = "")
         {
-            var scopes = string.IsNullOrWhiteSpace(scope) ? new[] { "openid", "profile", "email", "https://www.googleapis.com/auth/userinfo.profile" } 
+            var scopes = string.IsNullOrWhiteSpace(scope) ? new[] { "openid", "profile", "email", "https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/calendar.events"
+                }
                 : scope.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (!scopes.Contains("https://www.googleapis.com/auth/userinfo.profile"))
@@ -29,7 +30,7 @@ namespace ToDoAPI.API
             string redirectUri;
             try
             {
-                var scheme = Request.Scheme; 
+                var scheme = Request.Scheme;
                 var host = Request.Host.HasValue ? Request.Host.Value : throw new InvalidOperationException("Request host is missing");
                 var basePath = Request.PathBase.HasValue ? Request.PathBase.Value : string.Empty;
 

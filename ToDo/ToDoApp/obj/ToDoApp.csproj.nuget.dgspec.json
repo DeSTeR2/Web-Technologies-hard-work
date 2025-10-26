@@ -1,32 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoApp\\ToDoApp.csproj": {}
+    "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/ToDoApp.csproj": {}
   },
   "projects": {
-    "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoAPI\\ToDoAPI.csproj": {
+    "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoAPI/ToDoAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoAPI\\ToDoAPI.csproj",
+        "projectUniqueName": "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoAPI/ToDoAPI.csproj",
         "projectName": "ToDoAPI",
-        "projectPath": "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoAPI\\ToDoAPI.csproj",
-        "packagesPath": "C:\\Users\\38095\\.nuget\\packages\\",
-        "outputPath": "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoAPI\\obj\\",
+        "projectPath": "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoAPI/ToDoAPI.csproj",
+        "packagesPath": "/Users/vlasenko.zakhar/.nuget/packages/",
+        "outputPath": "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoAPI/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\38095\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/vlasenko.zakhar/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -45,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -58,6 +51,10 @@
             "AWSSDK.S3": {
               "target": "Package",
               "version": "[4.0.7.13, )"
+            },
+            "Google.Apis.Calendar.v3": {
+              "target": "Package",
+              "version": "[1.69.0.3746, )"
             },
             "Microsoft.AspNetCore.Authentication.Cookies": {
               "target": "Package",
@@ -114,41 +111,34 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/Users/vlasenko.zakhar/.dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoApp\\ToDoApp.csproj": {
+    "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/ToDoApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoApp\\ToDoApp.csproj",
+        "projectUniqueName": "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/ToDoApp.csproj",
         "projectName": "ToDoApp",
-        "projectPath": "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoApp\\ToDoApp.csproj",
-        "packagesPath": "C:\\Users\\38095\\.nuget\\packages\\",
-        "outputPath": "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoApp\\obj\\",
+        "projectPath": "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/ToDoApp.csproj",
+        "packagesPath": "/Users/vlasenko.zakhar/.nuget/packages/",
+        "outputPath": "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\38095\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/vlasenko.zakhar/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoAPI\\ToDoAPI.csproj": {
-                "projectPath": "D:\\Codes\\C#\\Web-Technologies-hard-work\\ToDo\\ToDoAPI\\ToDoAPI.csproj"
+              "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoAPI/ToDoAPI.csproj": {
+                "projectPath": "/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoAPI/ToDoAPI.csproj"
               }
             }
           }
@@ -163,7 +153,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -176,6 +166,10 @@
             "AWSSDK.S3": {
               "target": "Package",
               "version": "[4.0.7.13, )"
+            },
+            "Google.Apis.Calendar.v3": {
+              "target": "Package",
+              "version": "[1.69.0.3746, )"
             },
             "Microsoft.AspNetCore.Authentication": {
               "target": "Package",
@@ -243,7 +237,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/Users/vlasenko.zakhar/.dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

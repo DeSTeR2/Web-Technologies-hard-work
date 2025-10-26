@@ -1,19 +1,15 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 
 namespace ToDoAPI.Tool;
 
 public class UserDataService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private ClaimsPrincipal user;
 
-    public UserDataService(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
+    public ClaimsPrincipal GetCurrentUser() => user;
 
-    public ClaimsPrincipal GetCurrentUser() => _httpContextAccessor.HttpContext?.User;
-    
+    public void SetUser(ClaimsPrincipal user) => this.user = user;
+
     public string? GetCurrentUserId()
     {
         var user = GetCurrentUser();
