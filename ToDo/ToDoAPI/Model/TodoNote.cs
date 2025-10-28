@@ -19,6 +19,9 @@ namespace ToDoAPI.Model
         [BsonElement("CreationDate")]
         public DateTime? CreationDate { get; set; }
 
+        [BsonElement("ImageUrls")]
+        public List<string>? ImageUrls { get; set; } = new();
+
         [BsonElement("StartDate")]
         public DateTime? StartDate { get; set; }
 

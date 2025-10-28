@@ -579,4 +579,4 @@ D:/Codes/C#/Web-Technologies-hard-work/ToDo/ToDoApp/obj/Debug/net9.0/compressed/
 /Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/bin/Debug/net9.0/Google.Apis.Core.dll
 /Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/bin/Debug/net9.0/System.Management.dll
 /Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/bin/Debug/net9.0/runtimes/win/lib/net7.0/System.Management.dll
-/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/obj/Debug/net9.0/compressed/9ikvagkyly-fq7p0nxm74.gz
+/Users/vlasenko.zakhar/Web-Technologies-hard-work/ToDo/ToDoApp/obj/Debug/net9.0/compressed/9ikvagkyly-1q59717029.gz

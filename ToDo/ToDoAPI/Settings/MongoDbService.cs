@@ -180,4 +180,14 @@ public class MongoDbService
         var updated = await _notes.FindOneAndUpdateAsync(filter, update, options);
         return updated ?? throw new InvalidOperationException($"Note {id} not found");
     }
+
+    public async Task<TodoNote> UpdateNoteImagesAsync(string noteId, List<string> imageUrls)
+    {
+        var filter = Builders<TodoNote>.Filter.Eq(n => n.Id, noteId);
+        var update = Builders<TodoNote>.Update.Set(n => n.ImageUrls, imageUrls);
+        var options = new FindOneAndUpdateOptions<TodoNote> { ReturnDocument = ReturnDocument.After };
+
+        var updated = await _notes.FindOneAndUpdateAsync(filter, update, options);
+        return updated ?? throw new InvalidOperationException($"Note {noteId} not found");
+    }
 }

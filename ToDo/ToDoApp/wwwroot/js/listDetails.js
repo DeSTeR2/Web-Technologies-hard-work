@@ -122,8 +122,11 @@ async function loadTodos(noteIds){
             content: n.content ?? n.Content ?? n.Context ?? '',
             startDate: n.startDate ?? n.StartDate ?? null,
             endDate: n.endDate ?? n.EndDate ?? n.EndedAt ?? null,
-            status: n.status ?? n.Status ?? 0
+            status: n.status ?? n.Status ?? 0,
+            imageUrls: n.imageUrls ?? n.ImageUrls ?? []
         }));
+
+
 
         renderBoard(notes);
     }catch(e){
@@ -411,7 +414,86 @@ VisibleStatuses.forEach(s => {
 
 let editingNote = null;
 
-function openEditModalBig(note){
+const imageDropZone = document.getElementById('imageDropZone');
+const imageFileInput = document.getElementById('imageFileInput');
+const imagePreview = document.getElementById('imagePreview');
+
+// highlight on drag over
+imageDropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    imageDropZone.classList.add('dragover');
+});
+
+imageDropZone.addEventListener('dragleave', () => {
+    imageDropZone.classList.remove('dragover');
+});
+
+imageDropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    imageDropZone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+});
+
+// click to open file dialog
+imageDropZone.addEventListener('click', () => imageFileInput.click());
+
+imageFileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+async function handleFiles(files) {
+    if (!editingNote) return;
+
+    // Clear existing previews to avoid duplicates
+    imagePreview.innerHTML = '';
+
+    for (const file of files) {
+        const status = document.createElement('div');
+        status.textContent = `Uploading ${file.name}...`;
+        imagePreview.appendChild(status);
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch(`/api/AmazonS3/note/${encodeURIComponent(editingNote.id)}/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                status.textContent = `❌ Failed: ${file.name}`;
+                continue;
+            }
+
+            const data = await res.json();
+            const imageUrl = data.url ?? data.Url;
+            uploadNoteImage(editingNote.id, imageUrl);
+
+            // Replace the status element with the new image
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Uploaded image';
+            img.style.width = '120px';
+            img.style.height = '120px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+            img.style.cursor = 'pointer';
+            img.title = 'Click to view full size';
+            img.addEventListener('click', () => window.open(imageUrl, '_blank'));
+
+            imagePreview.replaceChild(img, status);
+        } catch (err) {
+            console.error(err);
+            status.textContent = `❌ Upload error: ${file.name}`;
+        }
+    }
+
+    // Re-fetch images from S3 to refresh the list
+    await fetchAndDisplayNoteImages(editingNote.id);
+}
+
+
+
+async function openEditModalBig(note) {
     editingNote = note;
 
     editModalTitle.textContent = note.title ?? '';
@@ -420,8 +502,124 @@ function openEditModalBig(note){
     editModalStart.value = note.startDate ? new Date(note.startDate).toISOString().slice(0,16) : '';
     editModalEnd.value = note.endDate ? new Date(note.endDate).toISOString().slice(0,16) : '';
 
+    imageFileInput.innerHTML = '';
+    imagePreview.innerHTML = '';
     editModalBackdrop.style.display = 'flex';
+    // Prepare image container (below context textarea)
+    const imageContainerId = 'editModalImageContainer';
+    let imageContainer = document.getElementById(imageContainerId);
+    if (!imageContainer) {
+        imageContainer = document.createElement('div');
+        imageContainer.id = imageContainerId;
+        imageContainer.style.display = 'flex';
+        imageContainer.style.flexWrap = 'wrap';
+        imageContainer.style.gap = '8px';
+        imageContainer.style.marginTop = '10px';
+        editModalContext.insertAdjacentElement('afterend', imageContainer);
+    }
+
+    // Clear previous content (important)
+    imageContainer.innerHTML = 'Loading images...';
+
+    // Fetch and display all images for this note
+    await fetchAndDisplayNoteImages(note.id);
 }
+
+async function fetchAndDisplayNoteImages(noteId) {
+    const container = document.getElementById('editModalImageContainer');
+    if (!container) return;
+
+    container.innerHTML = 'Loading images...';
+
+    try {
+        // First: try getting URLs from the TodoNote API (MongoDB)
+        const res = await fetch(`/api/TodoNote/${encodeURIComponent(noteId)}/images`, {
+            cache: 'no-store'
+        });
+
+        if (!res.ok) {
+            const text = await res.text().catch(() => null);
+            throw new Error(`Failed to fetch note images: ${text ?? res.statusText}`);
+        }
+
+        let json = await res.json();
+        const imageUrls = json.$values;
+
+        container.innerHTML = '';
+
+        if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
+            return;
+        }
+
+        for (const url of imageUrls) {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Note image';
+            img.style.width = '120px';
+            img.style.height = '120px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+            img.style.cursor = 'pointer';
+            img.title = 'Click to view full size';
+            img.addEventListener('click', () => window.open(url, '_blank'));
+            container.appendChild(img);
+        }
+
+    } catch (err) {
+        console.error('Failed to fetch note images:', err);
+
+        // Fallback: try to list files directly from S3 if MongoDB didn’t return
+        try {
+            const res2 = await fetch(`/api/AmazonS3/note/${encodeURIComponent(noteId)}/files`);
+
+            if (res2.ok) {
+                const files = await res2.json();
+                const noteFiles = files.filter(f => f.Key.includes(`/todo-notes/${noteId}/`));
+                container.innerHTML = '';
+
+                if (noteFiles.length === 0) {
+                    return;
+                }
+
+                for (const file of noteFiles) {
+                    const imgUrl = `https://centalbucketnametest.s3.eu-north-1.amazonaws.com/${file.Key}`;
+                    const img = document.createElement('img');
+                    img.src = imgUrl;
+                    img.alt = 'Note image';
+                    img.style.width = '120px';
+                    img.style.height = '120px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '8px';
+                    img.style.cursor = 'pointer';
+                    img.title = 'Click to view full size';
+                    img.addEventListener('click', () => window.open(imgUrl, '_blank'));
+                    container.appendChild(img);
+                }
+            } else {
+                container.textContent = 'Failed to load images.';
+            }
+        } catch (fallbackErr) {
+            console.error('S3 fallback also failed:', fallbackErr);
+            container.textContent = 'Failed to load images.';
+        }
+    }
+}
+
+
+
+async function uploadNoteImage(noteId, path) {
+
+    const res = await fetch(`${todoApi}/${encodeURIComponent(noteId)}/image?filePath=${path}`, {
+        method: 'POST'});
+
+    if (!res.ok) {
+        const text = await res.text().catch(()=>null);
+        throw new Error('Failed to upload images: ' + (text ?? res.status));
+    }
+
+    return await res.json();
+}
+
 
 function closeEditModal(){
     editModalBackdrop.style.display = 'none';
@@ -469,6 +667,26 @@ editModalUpdate.addEventListener('click', async () => {
         closeEditModal();
         await loadList();
     }
+});
+
+
+imageDropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    imageDropZone.classList.add('dragover');
+});
+
+imageDropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    imageDropZone.classList.remove('dragover');
+});
+
+imageDropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    imageDropZone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
 });
 
 

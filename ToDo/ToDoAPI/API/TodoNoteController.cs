@@ -1,5 +1,9 @@
+using Amazon.S3;
+using Amazon.S3.Model;
 using Google.Apis.Calendar.v3.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using ToDoAPI.Controllers;
 using ToDoAPI.Model;
 using ToDoAPI.Settings;
@@ -236,5 +240,84 @@ namespace ToDoAPI.API
                 return NotFound(e.Message);
             }
         }
+
+        // =================== IMAGE UPLOAD SECTION ===================
+
+[HttpPost("{id}/image")]
+public async Task<IActionResult> UploadImages(string id, [FromQuery] string filePath)
+{
+    if (string.IsNullOrEmpty(filePath))
+        return BadRequest("No image files provided.");
+
+    try
+    {
+        var note = await _mongo.FindNoteAsync(id);
+
+        note.ImageUrls?.Add(filePath);
+
+        if (note.ImageUrls != null)
+            await _mongo.UpdateNoteImagesAsync(id, note.ImageUrls);
+
+        return Ok();
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, "Error uploading images: " + ex.Message);
+    }
+}
+
+
+[HttpGet("{id}/images")]
+public async Task<IActionResult> GetNoteImages(string id)
+{
+    try
+    {
+        var note = await _mongo.FindNoteAsync(id);
+        if (note == null)
+            return NotFound($"Note with ID '{id}' not found.");
+
+        return Ok(note.ImageUrls ?? new List<string>());
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, "Error fetching images: " + ex.Message);
+    }
+}
+
+[HttpDelete("{id}/images")]
+public async Task<IActionResult> DeleteNoteImage(string id, [FromQuery] string imageUrl, [FromQuery] string bucketName = "your-default-bucket-name")
+{
+    if (string.IsNullOrWhiteSpace(imageUrl))
+        return BadRequest("imageUrl is required.");
+
+    try
+    {
+        var note = await _mongo.FindNoteAsync(id);
+        if (note == null)
+            return NotFound($"Note with ID '{id}' not found.");
+
+        using var scope = HttpContext.RequestServices.CreateScope();
+        var s3 = scope.ServiceProvider.GetRequiredService<IAmazonS3>();
+
+        var uri = new Uri(imageUrl);
+        var key = uri.AbsolutePath.TrimStart('/');
+
+        await s3.DeleteObjectAsync(new DeleteObjectRequest
+        {
+            BucketName = bucketName,
+            Key = key
+        });
+
+        note.ImageUrls?.Remove(imageUrl);
+        await _mongo.UpdateNoteImagesAsync(id, note.ImageUrls ?? new List<string>());
+
+        return Ok($"Deleted image '{key}' for note '{id}'.");
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, "Error deleting image: " + ex.Message);
+    }
+}
+
     }
 }

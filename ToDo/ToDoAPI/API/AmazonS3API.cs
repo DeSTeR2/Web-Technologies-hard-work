@@ -2,6 +2,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ToDoAPI.Settings;
 
 namespace ToDoAPI.API
 {
@@ -10,8 +11,15 @@ namespace ToDoAPI.API
     public class AmazonS3Controller : ControllerBase
     {
         private readonly IAmazonS3 _s3;
+        private readonly MongoDbService _mongo;
 
-        public AmazonS3Controller(IAmazonS3 s3) => _s3 = s3;
+        private const string DefaultBucket = "centalbucketnametest";
+
+        public AmazonS3Controller(IAmazonS3 s3, MongoDbService mongo)
+        {
+            _s3 = s3;
+            _mongo = mongo;
+        }
 
         [HttpGet("buckets")]
         public async Task<IActionResult> GetAllBuckets()
@@ -29,7 +37,7 @@ namespace ToDoAPI.API
 
             if (bucketName.Length is < 3 or > 63)
                 return BadRequest("Bucket name must be 3-63 characters.");
-            
+
             bool exists;
             try
             {
@@ -61,7 +69,6 @@ namespace ToDoAPI.API
                 : StatusCode((int)putResp.HttpStatusCode);
         }
 
-
         [HttpDelete("buckets/{bucketName}")]
         public async Task<IActionResult> DeleteBucket(string bucketName)
         {
@@ -87,6 +94,10 @@ namespace ToDoAPI.API
             return Ok(files);
         }
 
+        // ----------------------------
+        // Basic File Operations
+        // ----------------------------
+
         [HttpPost("{bucketName}/upload")]
         public async Task<IActionResult> UploadFile(string bucketName, IFormFile? file)
         {
@@ -94,16 +105,20 @@ namespace ToDoAPI.API
                 return BadRequest("File is empty.");
 
             await using var stream = file.OpenReadStream();
+            var key = $"{Guid.NewGuid()}_{file.FileName}";
+
             var request = new PutObjectRequest
             {
                 BucketName = bucketName,
-                Key = file.FileName,
+                Key = key,
                 InputStream = stream,
                 ContentType = file.ContentType
             };
 
             await _s3.PutObjectAsync(request);
-            return Ok($"Uploaded '{file.FileName}' to bucket '{bucketName}'.");
+
+            var url = $"https://{bucketName}.s3.eu-north-1.amazonaws.com/{key}";
+            return Ok(new { Url = url });
         }
 
         [HttpGet("{bucketName}/download/{key}")]
@@ -119,5 +134,60 @@ namespace ToDoAPI.API
             await _s3.DeleteObjectAsync(bucketName, key);
             return Ok($"File '{key}' deleted from bucket '{bucketName}'.");
         }
+
+        // ----------------------------
+        // 🚀 NEW: Upload Image for TodoNote
+        // ----------------------------
+        [HttpPost("note/{noteId}/upload")]
+        public async Task<IActionResult> UploadImageForNote(string noteId, IFormFile? file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("File is empty.");
+
+            var key = $"todo-notes/{noteId}/{Guid.NewGuid()}_{file.FileName}";
+
+            using var stream = file.OpenReadStream();
+            var request = new PutObjectRequest
+            {
+                BucketName = DefaultBucket,
+                Key = key,
+                InputStream = stream,
+                ContentType = file.ContentType
+            };
+            await _s3.PutObjectAsync(request);
+
+            var url = $"https://{DefaultBucket}.s3.amazonaws.com/{key}";
+            // optionally save URL to MongoDB note
+
+            return Ok(new { Url = url });
+        }
+
+        [HttpGet("region")]
+        public IActionResult GetRegion()
+        {
+            return Ok(_s3.Config.RegionEndpoint?.SystemName ?? "Unknown");
+        }
+
+        [HttpGet("note/{noteId}/files")]
+        public async Task<IActionResult> ListNoteFiles(string noteId)
+        {
+            var response = await _s3.ListObjectsV2Async(new ListObjectsV2Request
+            {
+                BucketName = DefaultBucket,
+                Prefix = $"todo-notes/{noteId}/"
+            });
+
+            var files = response.S3Objects.Select(o => new
+            {
+                o.Key,
+                Url = $"https://{DefaultBucket}.s3.eu-north-1.amazonaws.com/{o.Key}",
+                o.Size,
+                o.LastModified
+            });
+
+            return Ok(files);
+        }
+
+
     }
 }
