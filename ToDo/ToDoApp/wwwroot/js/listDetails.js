@@ -1,5 +1,10 @@
-const VisibleStatuses = [1,2,3,4];
-const statusNames = { 1:'Waiting',2:'In Process',3:'Disabled',4:'Completed' };
+const VisibleStatuses = [1, 2, 3, 4];
+const statusNames = {
+    1: 'Waiting',
+    2: 'In Process',
+    3: 'Disabled',
+    4: 'Completed'
+};
 
 const listsEndpoint = '/api/TodoList';
 const todoApi = '/api/TodoNote';
@@ -33,27 +38,35 @@ let editingItem = null;
 
 function setListId(id) {
     listId = id;
+    connectSignalR();
 }
 
-function escapeHtml(str){
-    if(!str) return '';
-    return String(str).replace(/[&"'<>]/g, s => ({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'}[s]));
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&"'<>]/g, s => ({
+        '&': '&amp;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '<': '&lt;',
+        '>': '&gt;'
+    }[s]));
 }
 
-function extractNoteIds(list){
+function extractNoteIds(list) {
     const raw = list?.noteIds ?? list?.NoteIds ?? list?.NoteIDs ?? list?.noteIDs ?? [];
     if (Array.isArray(raw)) return raw;
     if (raw && Array.isArray(raw.$values)) return raw.$values;
     return [];
 }
 
-function safeJsonParse(text){
-    try { return JSON.parse(text); } catch { return null; }
+function safeJsonParse(text) {
+    try { return JSON.parse(text); }
+    catch { return null; }
 }
 
-function buildColumns(){
+function buildColumns() {
     board.innerHTML = '';
-    VisibleStatuses.forEach(status =>{
+    VisibleStatuses.forEach(status => {
         const col = document.createElement('div');
         col.className = 'column';
         col.dataset.status = status;
@@ -69,17 +82,17 @@ function buildColumns(){
         board.appendChild(col);
     });
 
-    board.querySelectorAll('.col-add').forEach(btn =>{
-        btn.addEventListener('click', ()=> openCreateModal(Number(btn.dataset.addStatus)));
+    board.querySelectorAll('.col-add').forEach(btn => {
+        btn.addEventListener('click', () => openCreateModal(Number(btn.dataset.addStatus)));
     });
 }
 
-async function loadList(){
-    try{
-        if(!listId) throw new Error('listId not set');
+async function loadList() {
+    try {
+        if (!listId) throw new Error('listId not set');
         const res = await fetch(`${listsEndpoint}/${encodeURIComponent(listId)}`, { cache: 'no-store' });
-        if(!res.ok) {
-            const t = await res.text().catch(()=>null);
+        if (!res.ok) {
+            const t = await res.text().catch(() => null);
             throw new Error('failed to load list: ' + (t ?? res.status));
         }
         const list = await res.json();
@@ -91,31 +104,32 @@ async function loadList(){
 
         buildColumns();
         await loadTodos(noteIds);
-    }catch(e){
+    } catch (e) {
         listTitle.textContent = 'Error loading list';
         console.error(e);
         board.innerHTML = '<div class="empty">Could not load list</div>';
     }
 }
 
-async function loadTodos(noteIds){
-    try{
+async function loadTodos(noteIds) {
+    try {
         const ids = Array.isArray(noteIds) ? noteIds : [];
-
-        if(ids.length === 0){
+        if (ids.length === 0) {
             renderBoard([]);
             return;
         }
 
-        const fetches = ids.map(id => fetch(`${todoApi}/${encodeURIComponent(id)}`, { cache: 'no-store' })
-            .then(r => {
-                if(!r.ok) return r.text().then(t => { throw new Error(`Failed to load note ${id}: ${r.status} ${t}`); });
-                return r.json();
-            })
+        const fetches = ids.map(id =>
+            fetch(`${todoApi}/${encodeURIComponent(id)}`, { cache: 'no-store' })
+                .then(r => {
+                    if (!r.ok) return r.text().then(t => {
+                        throw new Error(`Failed to load note ${id}: ${r.status} ${t}`);
+                    });
+                    return r.json();
+                })
         );
 
         const rawNotes = await Promise.all(fetches);
-
         const notes = rawNotes.map(n => ({
             id: n.id ?? n.Id ?? n._id ?? n._Id,
             title: n.name ?? n.Name ?? n.title ?? n.Title ?? '',
@@ -126,10 +140,8 @@ async function loadTodos(noteIds){
             imageUrls: n.imageUrls ?? n.ImageUrls ?? []
         }));
 
-
-
         renderBoard(notes);
-    }catch(e){
+    } catch (e) {
         board.innerHTML = '<div class="empty">Could not load tasks</div>';
         console.error('loadTodos error', e);
     }
@@ -149,33 +161,26 @@ function renderCard(item) {
         <div class="left">
             <div class="title" contenteditable="true">${escapeHtml(item.title)}</div>
             <div class="content">${escapeHtml(previewContent)}</div>
-        </div>
-    `;
+        </div>`;
 
-    // Open **big edit modal** on card click
-    card.addEventListener('click', (e) => {
-        openEditModalBig(item);
-    });
-
-
+    card.addEventListener('click', e => openEditModalBig(item));
     return card;
 }
 
-
-function renderBoard(items){
+function renderBoard(items) {
     buildColumns();
-    const buckets = {1:[],2:[],3:[],4:[]};
-    if(!Array.isArray(items)) items = [];
+    const buckets = { 1: [], 2: [], 3: [], 4: [] };
+    if (!Array.isArray(items)) items = [];
 
-    items.forEach(it=>{
+    items.forEach(it => {
         const s = Number(it.status) || 0;
-        if(buckets[s]) buckets[s].push(it);
+        if (buckets[s]) buckets[s].push(it);
         else buckets[1].push(it);
     });
 
-    Object.keys(buckets).forEach(statusKey =>{
+    Object.keys(buckets).forEach(statusKey => {
         const col = board.querySelector(`.column[data-status='${statusKey}']`);
-        if(!col) return;
+        if (!col) return;
         const body = col.querySelector('.col-body');
         body.innerHTML = '';
         buckets[statusKey].forEach(item => {
@@ -188,7 +193,7 @@ function renderBoard(items){
     });
 }
 
-function openCreateModal(status){
+function openCreateModal(status) {
     modalMode = 'create';
     editingItem = null;
 
@@ -197,31 +202,31 @@ function openCreateModal(status){
     modalEndInput.value = '';
     modalStatusSelect.value = String(status);
     modalBackdrop.style.display = 'flex';
-    modalBackdrop.setAttribute('aria-hidden','false');
+    modalBackdrop.setAttribute('aria-hidden', 'false');
     modalTitleInput.focus();
 }
 
-function openEditModal(item){
+function openEditModal(item) {
     modalMode = 'edit';
     editingItem = item;
 
     modalTitleInput.value = item.title || '';
     modalContextInput.value = item.content || '';
-    modalEndInput.value = item.endDate ? new Date(item.endDate).toISOString().slice(0,16) : '';
+    modalEndInput.value = item.endDate ? new Date(item.endDate).toISOString().slice(0, 16) : '';
     modalStatusSelect.value = String(item.status || VisibleStatuses[0]);
     modalBackdrop.style.display = 'flex';
-    modalBackdrop.setAttribute('aria-hidden','false');
+    modalBackdrop.setAttribute('aria-hidden', 'false');
     modalTitleInput.focus();
 }
 
-function closeCreateModal(){
+function closeCreateModal() {
     modalBackdrop.style.display = 'none';
-    modalBackdrop.setAttribute('aria-hidden','true');
+    modalBackdrop.setAttribute('aria-hidden', 'true');
     modalMode = 'create';
     editingItem = null;
 }
 
-async function onModalCreateClick(){
+async function onModalCreateClick() {
     if (modalCreate.disabled) return;
     modalCreate.disabled = true;
 
@@ -237,11 +242,11 @@ async function onModalCreateClick(){
             await loadList();
         } else if (modalMode === 'edit' && editingItem) {
             try {
-                if(title !== editingItem.title) await updateTodoTitle(editingItem.id, title);
-                if(context !== editingItem.content) await updateTodoContent(editingItem.id, context);
-                if(status !== editingItem.status) await updateTodoStatus(editingItem.id, status);
-                if(end !== editingItem.endDate && end !== null) await updateTodoDate(editingItem.id, end, Date.now());
-            } catch(err){
+                if (title !== editingItem.title) await updateTodoTitle(editingItem.id, title);
+                if (context !== editingItem.content) await updateTodoContent(editingItem.id, context);
+                if (status !== editingItem.status) await updateTodoStatus(editingItem.id, status);
+                if (end !== editingItem.endDate && end !== null) await updateTodoDate(editingItem.id, end, Date.now());
+            } catch (err) {
                 console.error(err);
                 alert('Unable to save changes');
             }
@@ -249,18 +254,22 @@ async function onModalCreateClick(){
             await loadList();
         }
     } finally {
-        setTimeout(()=> modalCreate.disabled = false, 150);
+        setTimeout(() => modalCreate.disabled = false, 150);
     }
 }
 
 modalCreate.removeEventListener('click', onModalCreateClick);
 modalCreate.addEventListener('click', onModalCreateClick);
-modalCancel.addEventListener('click', ()=> closeCreateModal());
-modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) closeCreateModal(); });
+modalCancel.addEventListener('click', () => closeCreateModal());
+modalBackdrop.addEventListener('click', e => {
+    if (e.target === modalBackdrop) closeCreateModal();
+});
 
-
-async function createTodo(title, context, endDate, status){
-    if(!listId) { alert('List ID not set'); return; }
+async function createTodo(title, context, endDate, status) {
+    if (!listId) {
+        alert('List ID not set');
+        return;
+    }
     modalCreate.disabled = true;
     try {
         const payload = { name: title || '', content: context || '', status: status ?? VisibleStatuses[0], endDate: endDate ?? null };
@@ -272,7 +281,7 @@ async function createTodo(title, context, endDate, status){
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-        } catch(e) {
+        } catch (e) {
             res = null;
         }
 
@@ -284,22 +293,22 @@ async function createTodo(title, context, endDate, status){
             else if (text && text.trim()) createdId = text.trim();
         } else {
             const qs = [];
-            if(title) qs.push('name=' + encodeURIComponent(title));
-            if(context) qs.push('context=' + encodeURIComponent(context));
-            if(typeof status !== 'undefined' && status !== null) qs.push('status=' + encodeURIComponent(status));
-            if(endDate) qs.push('endDate=' + encodeURIComponent(endDate));
+            if (title) qs.push('name=' + encodeURIComponent(title));
+            if (context) qs.push('context=' + encodeURIComponent(context));
+            if (typeof status !== 'undefined' && status !== null) qs.push('status=' + encodeURIComponent(status));
+            if (endDate) qs.push('endDate=' + encodeURIComponent(endDate));
             const query = qs.length ? ('?' + qs.join('&')) : '';
 
             const res2 = await fetch(`${todoApi}/${encodeURIComponent(listId)}${query}`, { method: 'POST' });
-            if(!res2.ok){
-                const t = await res2.text().catch(()=>null);
+            if (!res2.ok) {
+                const t = await res2.text().catch(() => null);
                 console.error('createTodo failed', res2.status, t);
                 throw new Error('create todo failed');
             }
             createdId = (await res2.text()).trim();
         }
 
-        if(!createdId) throw new Error('Failed to obtain created note id');
+        if (!createdId) throw new Error('Failed to obtain created note id');
 
         const addRes = await fetch(`${listsEndpoint}/note/${encodeURIComponent(listId)}`, {
             method: 'PATCH',
@@ -307,14 +316,14 @@ async function createTodo(title, context, endDate, status){
             body: JSON.stringify(createdId)
         });
 
-        if(!addRes.ok){
-            const t = await addRes.text().catch(()=>null);
+        if (!addRes.ok) {
+            const t = await addRes.text().catch(() => null);
             console.error('Failed to add note to list', addRes.status, t);
             alert('Note created but failed to attach to list. It may already be attached or try reloading.');
         }
 
         await loadList();
-    } catch(e){
+    } catch (e) {
         alert('Unable to add todo');
         console.error(e);
     } finally {
@@ -322,28 +331,25 @@ async function createTodo(title, context, endDate, status){
     }
 }
 
-
-async function updateTodoTitle(id, title){
-    if(!id) throw new Error('id required');
+async function updateTodoTitle(id, title) {
+    if (!id) throw new Error('id required');
     try {
         const res = await fetch(`${todoApi}/${encodeURIComponent(id)}/title?title=${encodeURIComponent(title)}`, { method: 'PATCH' });
         if (res.ok) return;
-    } catch(e) {
-    }
+    } catch (e) { }
 
-    const encoded = encodeURIComponent(content);
+    const encoded = encodeURIComponent(title);
     const url = `${todoApi}/${encodeURIComponent(id)}/${encoded}`;
     const res2 = await fetch(url, { method: 'PATCH' });
-    if(!res2.ok){
-        const t = await res2.text().catch(()=>null);
+    if (!res2.ok) {
+        const t = await res2.text().catch(() => null);
         console.error('updateTodoContent failed', res2.status, t);
         throw new Error('content update failed');
     }
 }
 
-
-async function updateTodoContent(id, content){
-    if(!id) throw new Error('id required');
+async function updateTodoContent(id, content) {
+    if (!id) throw new Error('id required');
     try {
         const res = await fetch(`${todoApi}/${encodeURIComponent(id)}/content`, {
             method: 'PATCH',
@@ -351,60 +357,58 @@ async function updateTodoContent(id, content){
             body: JSON.stringify({ content })
         });
         if (res.ok) return;
-    } catch(e) {
-    }
+    } catch (e) { }
 
     const encoded = encodeURIComponent(content);
     const url = `${todoApi}/${encodeURIComponent(id)}/${encoded}`;
     const res2 = await fetch(url, { method: 'PATCH' });
-    if(!res2.ok){
-        const t = await res2.text().catch(()=>null);
+    if (!res2.ok) {
+        const t = await res2.text().catch(() => null);
         console.error('updateTodoContent failed', res2.status, t);
         throw new Error('content update failed');
     }
 }
 
-async function updateTodoStatus(id, status){
+async function updateTodoStatus(id, status) {
     const url = `${todoApi}/${encodeURIComponent(id)}/status?status=${encodeURIComponent(status)}`;
     const res = await fetch(url, { method: 'PATCH' });
-    if(!res.ok){
-        const t = await res.text().catch(()=>null);
+    if (!res.ok) {
+        const t = await res.text().catch(() => null);
         console.error('updateTodoStatus failed', res.status, t);
         throw new Error('status update failed');
     }
 }
 
-async function updateTodoDate(id, endDateIso, startDateIso){
+async function updateTodoDate(id, endDateIso, startDateIso) {
     const url = `${todoApi}/${encodeURIComponent(id)}/date?endDate=${encodeURIComponent(endDateIso)}&startDate=${encodeURIComponent(startDateIso)}`;
     const res = await fetch(url, { method: 'PATCH' });
-    if(!res.ok){
-        const t = await res.text().catch(()=>null);
+    if (!res.ok) {
+        const t = await res.text().catch(() => null);
         console.error('updateTodoDate failed', res.status, t);
         throw new Error('endDate update failed');
     }
 }
 
-async function deleteTodo(id){
-    const res = await fetch(`${todoApi}/${encodeURIComponent(id)}`, { method:'DELETE' });
-    if(!res.ok){ const t = await res.text().catch(()=>null); console.error('deleteTodo failed', res.status, t); throw new Error('delete failed'); }
+async function deleteTodo(id) {
+    const res = await fetch(`${todoApi}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!res.ok) {
+        const t = await res.text().catch(() => null);
+        console.error('deleteTodo failed', res.status, t);
+        throw new Error('delete failed');
+    }
 
     const rem = await fetch(`${listsEndpoint}/note/${encodeURIComponent(listId)}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(id)
     });
-    if(!rem.ok){
-        const t = await rem.text().catch(()=>null);
+    if (!rem.ok) {
+        const t = await rem.text().catch(() => null);
         console.error('Failed to remove note from list', rem.status, t);
         throw new Error('failed to remove note from list');
     }
 }
 
-
-// Edit modal elements
-
-
-// Populate status dropdown
 VisibleStatuses.forEach(s => {
     const opt = document.createElement('option');
     opt.value = s;
@@ -418,8 +422,7 @@ const imageDropZone = document.getElementById('imageDropZone');
 const imageFileInput = document.getElementById('imageFileInput');
 const imagePreview = document.getElementById('imagePreview');
 
-// highlight on drag over
-imageDropZone.addEventListener('dragover', (e) => {
+imageDropZone.addEventListener('dragover', e => {
     e.preventDefault();
     imageDropZone.classList.add('dragover');
 });
@@ -428,21 +431,18 @@ imageDropZone.addEventListener('dragleave', () => {
     imageDropZone.classList.remove('dragover');
 });
 
-imageDropZone.addEventListener('drop', (e) => {
+imageDropZone.addEventListener('drop', e => {
     e.preventDefault();
     imageDropZone.classList.remove('dragover');
     handleFiles(e.dataTransfer.files);
 });
 
-// click to open file dialog
 imageDropZone.addEventListener('click', () => imageFileInput.click());
-
-imageFileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+imageFileInput.addEventListener('change', e => handleFiles(e.target.files));
 
 async function handleFiles(files) {
     if (!editingNote) return;
 
-    // Clear existing previews to avoid duplicates
     imagePreview.innerHTML = '';
 
     for (const file of files) {
@@ -460,7 +460,7 @@ async function handleFiles(files) {
             });
 
             if (!res.ok) {
-                status.textContent = `❌ Failed: ${file.name}`;
+                status.textContent = `Failed: ${file.name}`;
                 continue;
             }
 
@@ -468,7 +468,6 @@ async function handleFiles(files) {
             const imageUrl = data.url ?? data.Url;
             uploadNoteImage(editingNote.id, imageUrl);
 
-            // Replace the status element with the new image
             const img = document.createElement('img');
             img.src = imageUrl;
             img.alt = 'Uploaded image';
@@ -483,15 +482,12 @@ async function handleFiles(files) {
             imagePreview.replaceChild(img, status);
         } catch (err) {
             console.error(err);
-            status.textContent = `❌ Upload error: ${file.name}`;
+            status.textContent = `Upload error: ${file.name}`;
         }
     }
 
-    // Re-fetch images from S3 to refresh the list
     await fetchAndDisplayNoteImages(editingNote.id);
 }
-
-
 
 async function openEditModalBig(note) {
     editingNote = note;
@@ -499,13 +495,13 @@ async function openEditModalBig(note) {
     editModalTitle.textContent = note.title ?? '';
     editModalContext.value = note.content ?? '';
     editModalStatus.value = String(note.status ?? VisibleStatuses[0]);
-    editModalStart.value = note.startDate ? new Date(note.startDate).toISOString().slice(0,16) : '';
-    editModalEnd.value = note.endDate ? new Date(note.endDate).toISOString().slice(0,16) : '';
+    editModalStart.value = note.startDate ? new Date(note.startDate).toISOString().slice(0, 16) : '';
+    editModalEnd.value = note.endDate ? new Date(note.endDate).toISOString().slice(0, 16) : '';
 
     imageFileInput.innerHTML = '';
     imagePreview.innerHTML = '';
     editModalBackdrop.style.display = 'flex';
-    // Prepare image container (below context textarea)
+
     const imageContainerId = 'editModalImageContainer';
     let imageContainer = document.getElementById(imageContainerId);
     if (!imageContainer) {
@@ -518,10 +514,7 @@ async function openEditModalBig(note) {
         editModalContext.insertAdjacentElement('afterend', imageContainer);
     }
 
-    // Clear previous content (important)
     imageContainer.innerHTML = 'Loading images...';
-
-    // Fetch and display all images for this note
     await fetchAndDisplayNoteImages(note.id);
 }
 
@@ -532,11 +525,7 @@ async function fetchAndDisplayNoteImages(noteId) {
     container.innerHTML = 'Loading images...';
 
     try {
-        // First: try getting URLs from the TodoNote API (MongoDB)
-        const res = await fetch(`/api/TodoNote/${encodeURIComponent(noteId)}/images`, {
-            cache: 'no-store'
-        });
-
+        const res = await fetch(`/api/TodoNote/${encodeURIComponent(noteId)}/images`, { cache: 'no-store' });
         if (!res.ok) {
             const text = await res.text().catch(() => null);
             throw new Error(`Failed to fetch note images: ${text ?? res.statusText}`);
@@ -547,9 +536,7 @@ async function fetchAndDisplayNoteImages(noteId) {
 
         container.innerHTML = '';
 
-        if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
-            return;
-        }
+        if (!Array.isArray(imageUrls) || imageUrls.length === 0) return;
 
         for (const url of imageUrls) {
             const img = document.createElement('img');
@@ -564,22 +551,17 @@ async function fetchAndDisplayNoteImages(noteId) {
             img.addEventListener('click', () => window.open(url, '_blank'));
             container.appendChild(img);
         }
-
     } catch (err) {
         console.error('Failed to fetch note images:', err);
 
-        // Fallback: try to list files directly from S3 if MongoDB didn’t return
         try {
             const res2 = await fetch(`/api/AmazonS3/note/${encodeURIComponent(noteId)}/files`);
-
             if (res2.ok) {
                 const files = await res2.json();
                 const noteFiles = files.filter(f => f.Key.includes(`/todo-notes/${noteId}/`));
                 container.innerHTML = '';
 
-                if (noteFiles.length === 0) {
-                    return;
-                }
+                if (noteFiles.length === 0) return;
 
                 for (const file of noteFiles) {
                     const imgUrl = `https://centalbucketnametest.s3.eu-north-1.amazonaws.com/${file.Key}`;
@@ -605,45 +587,41 @@ async function fetchAndDisplayNoteImages(noteId) {
     }
 }
 
-
-
 async function uploadNoteImage(noteId, path) {
-
-    const res = await fetch(`${todoApi}/${encodeURIComponent(noteId)}/image?filePath=${path}`, {
-        method: 'POST'});
-
+    const res = await fetch(`${todoApi}/${encodeURIComponent(noteId)}/image?filePath=${path}`, { method: 'POST' });
     if (!res.ok) {
-        const text = await res.text().catch(()=>null);
+        const text = await res.text().catch(() => null);
         throw new Error('Failed to upload images: ' + (text ?? res.status));
     }
-
     return await res.json();
 }
 
-
-function closeEditModal(){
+function closeEditModal() {
     editModalBackdrop.style.display = 'none';
     editingNote = null;
 }
 
 editModalCancel.addEventListener('click', closeEditModal);
-editModalBackdrop.addEventListener('click', e => { if(e.target === editModalBackdrop) closeEditModal(); });
+editModalBackdrop.addEventListener('click', e => {
+    if (e.target === editModalBackdrop) closeEditModal();
+});
+
 modalDeleteBtn.addEventListener('click', async () => {
-    if(!editingItem) return;
-    if(!confirm('Are you sure you want to delete this note?')) return;
+    if (!editingItem) return;
+    if (!confirm('Are you sure you want to delete this note?')) return;
 
     try {
         await deleteTodo(editingItem.id);
         closeCreateModal();
         await loadList();
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         alert('Unable to delete note');
     }
 });
 
 editModalUpdate.addEventListener('click', async () => {
-    if(!editingNote) return;
+    if (!editingNote) return;
     const newTitle = editModalTitle.textContent.trim();
     const ModalContext = editModalContext.value.trim();
     const newStatus = Number(editModalStatus.value);
@@ -651,16 +629,16 @@ editModalUpdate.addEventListener('click', async () => {
     const newEnd = editModalEnd.value ? new Date(editModalEnd.value).toISOString() : null;
 
     try {
-        if(newTitle !== editingNote.title) await updateTodoTitle(editingNote.id, newTitle);
-        if(ModalContext !== editingNote.context) await updateTodoContent(editingNote.id, ModalContext);
-        if(newStatus !== editingNote.status) await updateTodoStatus(editingNote.id, newStatus);
-        if(newEnd !== editingNote.endDate && newEnd !== null) await updateTodoDate(editingNote.id, newEnd, newStart);
-        // content is kept only in frontend, no need to save to DB
+        if (newTitle !== editingNote.title) await updateTodoTitle(editingNote.id, newTitle);
+        if (ModalContext !== editingNote.context) await updateTodoContent(editingNote.id, ModalContext);
+        if (newStatus !== editingNote.status) await updateTodoStatus(editingNote.id, newStatus);
+        if (newEnd !== editingNote.endDate && newEnd !== null) await updateTodoDate(editingNote.id, newEnd, newStart);
+
         editingNote.title = newTitle;
         editingNote.status = newStatus;
         editingNote.endDate = newEnd;
         editingNote.context = ModalContext;
-    } catch(e){
+    } catch (e) {
         console.error(e);
         alert('Failed to update note.');
     } finally {
@@ -669,29 +647,263 @@ editModalUpdate.addEventListener('click', async () => {
     }
 });
 
-
-imageDropZone.addEventListener('dragover', (e) => {
+imageDropZone.addEventListener('dragover', e => {
     e.preventDefault();
     e.stopPropagation();
     imageDropZone.classList.add('dragover');
 });
 
-imageDropZone.addEventListener('dragleave', (e) => {
+imageDropZone.addEventListener('dragleave', e => {
     e.preventDefault();
     e.stopPropagation();
     imageDropZone.classList.remove('dragover');
 });
 
-imageDropZone.addEventListener('drop', (e) => {
+imageDropZone.addEventListener('drop', e => {
     e.preventDefault();
     e.stopPropagation();
     imageDropZone.classList.remove('dragover');
     handleFiles(e.dataTransfer.files);
 });
 
+modalCancel.addEventListener('click', () => closeCreateModal());
+backBtn.addEventListener('click', () => window.location.href = '/MainPage');
 
-modalCancel.addEventListener('click', ()=> closeCreateModal());
-backBtn.addEventListener('click', ()=> window.location.href = '/MainPage');
+if (listId) loadList();
 
-if(listId)
-    loadList();
+/* ==============================================================
+   SIGNALR + REAL-TIME DRAG-AND-DROP
+   ============================================================== */
+let connection = null;
+let draggedCard = null;
+let sourceStatus = null;
+let remoteGhost = null;
+
+async function connectSignalR() {
+    if (!listId || connection) return;
+
+    connection = new signalR.HubConnectionBuilder()
+        .withUrl("/ws/todoSync", {
+            skipNegotiation: true,
+            transport: signalR.HttpTransportType.WebSockets
+        })
+        .withAutomaticReconnect([0, 2000, 10000])
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.on('message', msg => {
+        const { type, payload } = msg;
+        switch (type) {
+            case 'NOTE_CREATED': remoteCreate(payload); break;
+            case 'NOTE_UPDATED': remoteUpdate(payload); break;
+            case 'NOTE_DELETED': remoteDelete(payload); break;
+            case 'NOTE_MOVED': remoteMove(payload); break;
+            case 'DRAG_START': remoteDragStart(payload.id); break;
+            case 'DRAG_OVER': remoteDragOver(payload.status); break;
+            case 'DRAG_MOVE': remoteDragMove(payload); break;
+            case 'DRAG_END': remoteDragEnd(payload.id); break;
+        }
+    });
+
+    try {
+        await connection.start();
+        console.log('SIGNALR CONNECTED');
+        await connection.invoke('JoinList', listId);
+    } catch (err) {
+        console.error('SignalR failed:', err);
+        setTimeout(connectSignalR, 3000);
+    }
+}
+
+function broadcast(type, payload) {
+    if (connection?.state !== 'Connected') return;
+
+    if (type === 'DRAG_START') {
+        connection.invoke('BroadcastDragStart', listId, payload.id).catch(() => {});
+    } else if (type === 'DRAG_MOVE') {
+        connection.invoke('BroadcastDragMove', listId, payload.id, payload.x, payload.y).catch(() => {});
+    } else if (type === 'DRAG_END') {
+        connection.invoke('BroadcastDragEnd', listId, payload.id).catch(() => {});
+    } else {
+        connection.invoke('SendToGroup', listId, type, payload).catch(() => {});
+    }
+}
+
+function remoteCreate(note) {
+    const card = renderCard(note);
+    const col = board.querySelector(`.column[data-status="${note.status}"] .col-body`);
+    if (col) { col.appendChild(card); updateCount(note.status); }
+}
+
+function remoteUpdate(note) {
+    const card = board.querySelector(`.card[data-id="${note.id}"]`);
+    if (card && note.title !== undefined) {
+        card.querySelector('.title').textContent = escapeHtml(note.title);
+    }
+}
+
+function remoteDelete({ id, status }) {
+    const card = board.querySelector(`.card[data-id="${id}"]`);
+    if (card) { card.remove(); updateCount(status); }
+}
+
+function remoteMove({ id, fromStatus, toStatus }) {
+    const card = board.querySelector(`.card[data-id="${id}"]`);
+    if (!card) return;
+
+    const fromBody = board.querySelector(`.column[data-status="${fromStatus}"] .col-body`);
+    const toBody = board.querySelector(`.column[data-status="${toStatus}"] .col-body`);
+    if (!fromBody || !toBody) return;
+
+    fromBody.removeChild(card);
+    updateCount(fromStatus);
+    toBody.appendChild(card);
+    updateCount(toStatus);
+}
+
+function remoteDragOver(status) {
+    board.querySelectorAll('.column').forEach(col => {
+        col.classList.toggle('remote-dragover', Number(col.dataset.status) === status);
+    });
+}
+
+function initDragDrop() {
+    document.querySelectorAll('.card').forEach(card => {
+        card.draggable = true;
+        card.style.cursor = 'grab';
+        card.style.userSelect = 'none';
+    });
+
+    document.querySelectorAll('.column').forEach(col => {
+        const status = Number(col.dataset.status);
+        const body = col.querySelector('.col-body');
+
+        col.addEventListener('dragstart', e => {
+            const card = e.target.closest('.card');
+            if (!card) return;
+            draggedCard = card;
+            sourceStatus = status;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', card.dataset.id);
+            broadcast('DRAG_START', { id: card.dataset.id });
+        });
+
+        col.addEventListener('dragend', () => {
+            if (draggedCard) {
+                draggedCard.classList.remove('dragging');
+                broadcast('DRAG_END', { id: draggedCard.dataset.id });
+            }
+            draggedCard = null;
+            sourceStatus = null;
+        });
+
+        col.addEventListener('drag', e => {
+            if (!draggedCard || e.clientX === 0) return;
+            const rect = board.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            broadcast('DRAG_MOVE', { id: draggedCard.dataset.id, x, y });
+        });
+
+        col.addEventListener('dragover', e => {
+            e.preventDefault();
+            col.classList.add('local-dragover');
+        });
+
+        col.addEventListener('dragleave', () => col.classList.remove('local-dragover'));
+
+        col.addEventListener('drop', async e => {
+            e.preventDefault();
+            col.classList.remove('local-dragover');
+            if (!draggedCard || status === sourceStatus) return;
+
+            const noteId = draggedCard.dataset.id;
+            const fromBody = board.querySelector(`.column[data-status="${sourceStatus}"] .col-body`);
+            fromBody.removeChild(draggedCard);
+            updateCount(sourceStatus);
+            body.appendChild(draggedCard);
+            updateCount(status);
+
+            try {
+                await updateTodoStatus(noteId, status);
+                broadcast('NOTE_MOVED', { id: noteId, fromStatus: sourceStatus, toStatus: status });
+            } catch {
+                await loadList();
+            }
+        });
+    });
+}
+
+function remoteDragStart(id) {
+    const card = board.querySelector(`.card[data-id="${id}"]`);
+    if (!card || card === draggedCard || card === remoteGhost || remoteGhost) return;
+
+    remoteGhost = card.cloneNode(true);
+    remoteGhost.classList.add('remote-ghost');
+    remoteGhost.style.position = 'fixed';
+    remoteGhost.style.pointerEvents = 'none';
+    remoteGhost.style.opacity = '0.7';
+    remoteGhost.style.zIndex = '9998';
+    document.body.appendChild(remoteGhost);
+}
+
+function remoteDragMove({ id, x, y }) {
+    if (!remoteGhost) return;
+    remoteGhost.style.left = x + 'px';
+    remoteGhost.style.top = y + 'px';
+}
+
+function remoteDragEnd(id) {
+    if (remoteGhost) {
+        document.body.removeChild(remoteGhost);
+        remoteGhost.innerHTML = '';
+        remoteGhost.remove();
+        remoteGhost = null;
+    }
+}
+
+const origRenderBoard = window.renderBoard;
+window.renderBoard = function (items) {
+    origRenderBoard(items);
+    initDragDrop();
+};
+
+const origBuildColumns = window.buildColumns;
+window.buildColumns = function () {
+    origBuildColumns();
+    initDragDrop();
+};
+
+initDragDrop();
+
+board.addEventListener('blur', async e => {
+    const el = e.target;
+    if (!el.classList.contains('title')) return;
+    const card = el.closest('.card');
+    const newTitle = el.textContent.trim();
+    const oldTitle = card.__cachedTitle || '';
+    if (newTitle === oldTitle) return;
+    card.__cachedTitle = newTitle;
+    try {
+        await updateTodoTitle(card.dataset.id, newTitle);
+        broadcast('NOTE_UPDATED', { id: card.dataset.id, title: newTitle });
+    } catch {
+        el.textContent = oldTitle;
+    }
+}, true);
+
+board.addEventListener('focus', e => {
+    if (e.target.classList.contains('title')) {
+        e.target.closest('.card').__cachedTitle = e.target.textContent.trim();
+    }
+}, true);
+
+function updateCount(status) {
+    const col = board.querySelector(`.column[data-status="${status}"]`);
+    if (col) {
+        const count = col.querySelector('.col-body').children.length;
+        col.querySelector('[data-count]').textContent = count;
+    }
+}

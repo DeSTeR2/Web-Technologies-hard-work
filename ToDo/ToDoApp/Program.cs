@@ -1,21 +1,19 @@
+using System.Text.Json.Serialization;
 using Amazon;
 using Amazon.Extensions.NETCore.Setup;
 using Amazon.S3;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.OpenApi.Models;
-using MongoDB.Driver;
-using ToDoAPI.Services;
-using ToDoAPI.Settings;
-using ToDoAPI.Tool;
-
-// === Google Calendar (NEW) ===
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using ToDoAPI.Controllers;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
+using ToDoAPI.API;
+using ToDoAPI.Settings;
+using ToDoAPI.Tool;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +23,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
@@ -58,6 +56,7 @@ builder.Services.AddSingleton<TokenProtector>();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<GoogleTokenStore>();
 builder.Services.AddSingleton<UserDataService>();
+builder.Services.AddSignalR();
 builder.Services.AddSingleton<GoogleApiTokenProvider>();
 builder.Services.AddAWSService<IAmazonS3>(new AWSOptions
 {
@@ -74,7 +73,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Login";
     });
 
-// ========= NEW: session (for PKCE code_verifier) =========
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -83,13 +82,12 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
-// ========= NEW: Google Calendar OAuth & client =========
-// Reads your appsettings.json -> "GoogleCalendar": { client_id, client_secret, ... }
+
 var gcal = builder.Configuration.GetSection("GoogleCalendar");
 var googleClientId = gcal["client_id"];
 var googleClientSecret = gcal["client_secret"];
 
-// OAuth flow + token store (per-user)
+
 builder.Services.AddSingleton<GoogleAuthorizationCodeFlow>(_ =>
     new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
     {
@@ -103,13 +101,13 @@ builder.Services.AddSingleton<GoogleAuthorizationCodeFlow>(_ =>
     })
 );
 
-// Request-scoped CalendarService using current user's token (after OAuth callback)
+
 builder.Services.AddScoped<CalendarService>(sp =>
 {
     var flow = sp.GetRequiredService<GoogleAuthorizationCodeFlow>();
     var userId = sp.GetRequiredService<UserDataService>().GetCurrentUserId();
 
-    // Load token saved by your AuthController after exchanging code
+
     var token = flow.DataStore.GetAsync<TokenResponse>(userId).GetAwaiter().GetResult();
     if (token == null || (string.IsNullOrEmpty(token.RefreshToken) && string.IsNullOrEmpty(token.AccessToken)))
         throw new InvalidOperationException("Google Calendar is not authorized for this user.");
@@ -121,7 +119,7 @@ builder.Services.AddScoped<CalendarService>(sp =>
         ApplicationName = "TodoList"
     });
 });
-// ========================================================
+
 
 var app = builder.Build();
 
@@ -129,10 +127,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "TodoList API v1");
-    });
+    app.UseSwaggerUI(options => { options.SwaggerEndpoint("/swagger/v1/swagger.json", "TodoList API v1"); });
 }
 else
 {
@@ -143,7 +138,9 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// === NEW: enable session before routing/controllers ===
+app.MapHub<TodoSyncHub>("/ws/todoSync");
+
+
 app.UseSession();
 
 app.UseRouting();

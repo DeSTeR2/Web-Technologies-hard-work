@@ -1,16 +1,19 @@
-using System.Security.Claims;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using ToDoAPI.Tool;
+
+namespace ToDoAPI.API;
 
 [ApiController]
 [Route("[controller]/[action]")]
 public class AccountController : Controller
 {
-    private readonly GoogleTokenStore _tokenStore;
     private readonly TokenProtector _tokenProtector;
-    private UserDataService _userDataService;
+    private readonly GoogleTokenStore _tokenStore;
+    private readonly UserDataService _userDataService;
 
     public AccountController(GoogleTokenStore tokenStore, TokenProtector tokenProtector, UserDataService userDataService)
     {
@@ -41,12 +44,12 @@ public class AccountController : Controller
         if (accessToken == null) return NotFound();
 
         using var http = new HttpClient();
-        http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         var resp = await http.GetAsync("https://www.googleapis.com/oauth2/v2/userinfo");
         if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode);
 
-        dynamic o = Newtonsoft.Json.JsonConvert.DeserializeObject(await resp.Content.ReadAsStringAsync());
+        dynamic o = JsonConvert.DeserializeObject(await resp.Content.ReadAsStringAsync());
         string pictureUrl = o.picture;
 
         var imgBytes = await http.GetByteArrayAsync(pictureUrl);

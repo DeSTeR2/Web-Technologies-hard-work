@@ -1,9 +1,15 @@
 using ToDoAPI.Auth;
 
+namespace ToDoAPI.Tool;
+
 public class GoogleApiTokenProvider
 {
     private readonly GoogleTokenStore _store;
-    public GoogleApiTokenProvider(GoogleTokenStore store) => _store = store;
+
+    public GoogleApiTokenProvider(GoogleTokenStore store)
+    {
+        _store = store;
+    }
 
     public async Task<string> GetAccessTokenForUserAsync(string userId)
     {

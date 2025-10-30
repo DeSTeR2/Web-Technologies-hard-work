@@ -1,11 +1,17 @@
 using Microsoft.Extensions.Logging;
 
-namespace ToDoAPI.Model
+namespace ToDoAPI.Model;
+
+public class LoginModel
 {
-    public class LoginModel
+    private readonly ILogger<LoginModel> _logger;
+
+    public LoginModel(ILogger<LoginModel> logger)
     {
-        private readonly ILogger<LoginModel> _logger;
-        public LoginModel(ILogger<LoginModel> logger) => _logger = logger;
-        public void OnGet() { }
+        _logger = logger;
+    }
+
+    public void OnGet()
+    {
     }
 }

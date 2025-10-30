@@ -6,15 +6,40 @@
 <!doctype html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title>Sign in</title>
     <link rel="icon" type="image/x-icon" href="/images/logo.svg">
     <style>
-        body{font-family:Segoe UI,Roboto,Arial;margin:40px;display:flex;align-items:center;justify-content:center;height:80vh}
-        .card{padding:24px;border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.08);text-align:center}
-        button{background:#4285F4;color:white;border:none;padding:10px 16px;border-radius:6px;font-size:16px;cursor:pointer}
-        button:hover{opacity:.92}
+        body {
+            font-family: Segoe UI, Roboto, Arial;
+            margin: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80vh
+        }
+
+        .card {
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, .08);
+            text-align: center
+        }
+
+        button {
+            background: #4285F4;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer
+        }
+
+        button:hover {
+            opacity: .92
+        }
     </style>
 </head>
 <body>
@@ -33,23 +58,23 @@
     btn.addEventListener('click', async () => {
         status.textContent = 'Starting Google sign in...';
         try {
-            // Call the API to start OAuth (it will return a redirect url)
+
             const res = await fetch('/api/auth/google/start');
-            if(!res.ok) {
-                const txt = await res.text().catch(()=>null);
+            if (!res.ok) {
+                const txt = await res.text().catch(() => null);
                 status.textContent = 'Failed to start authentication';
                 console.error('start failed', res.status, txt);
                 return;
             }
             const payload = await res.json();
-            if(!payload || !payload.url) {
+            if (!payload || !payload.url) {
                 status.textContent = 'Invalid response from auth start';
                 console.error(payload);
                 return;
             }
-            // redirect browser to Google
+
             window.location.href = payload.url;
-        } catch(err) {
+        } catch (err) {
             console.error(err);
             status.textContent = 'Error starting sign in';
         }

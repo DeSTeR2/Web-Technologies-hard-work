@@ -51,7 +51,7 @@ function renderLists(items) {
 async function createList(name) {
     try {
         const url = `${listsEndpoint}?name=${encodeURIComponent(name)}`;
-        const res = await fetch(url, { method: 'POST' });
+        const res = await fetch(url, {method: 'POST'});
         if (!res.ok) {
             const txt = await res.text().catch(() => null);
             throw new Error('Create list failed' + (txt ? ': ' + txt : ''));
@@ -65,7 +65,7 @@ async function createList(name) {
 
 async function deleteList(id) {
     try {
-        const res = await fetch(`${listsEndpoint}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        const res = await fetch(`${listsEndpoint}/${encodeURIComponent(id)}`, {method: 'DELETE'});
         if (!res.ok) {
             const txt = await res.text().catch(() => null);
             throw new Error('Delete failed' + (txt ? ': ' + txt : ''));

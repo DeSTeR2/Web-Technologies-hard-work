@@ -1,55 +1,62 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace ToDoAPI.Model
+namespace ToDoAPI.Model;
+
+[Serializable]
+public class TodoNote
 {
-    [Serializable]
-    public class TodoNote
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string? Id { get; set; }
+
+    [BsonElement("Name")] public string? Name { get; set; }
+
+    [BsonElement("Content")] public string? Content { get; set; }
+
+    [BsonElement("CreationDate")] public DateTime? CreationDate { get; set; }
+
+    [BsonElement("ImageUrls")] public List<string>? ImageUrls { get; set; } = new();
+
+    [BsonElement("StartDate")] public DateTime? StartDate { get; set; }
+
+    [BsonElement("EndDate")] public DateTime? EndDate { get; set; }
+
+    [BsonElement("Status")] public TodoStatus? Status { get; set; }
+
+    [BsonElement("GoogleCalendarEventIdg")]
+    public string GoogleCalendarEventId { get; set; }
+
+    public class Builder
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string? Id { get; set; } = null!;
+        private readonly TodoNote _note = new();
 
-        [BsonElement("Name")]
-        public string? Name { get; set; }
-
-        [BsonElement("Content")]
-        public string? Content { get; set; }
-
-        [BsonElement("CreationDate")]
-        public DateTime? CreationDate { get; set; }
-
-        [BsonElement("ImageUrls")]
-        public List<string>? ImageUrls { get; set; } = new();
-
-        [BsonElement("StartDate")]
-        public DateTime? StartDate { get; set; }
-
-        [BsonElement("EndDate")]
-        public DateTime? EndDate { get; set; }
-
-        [BsonElement("Status")]
-        public TodoStatus? Status { get; set; }
-
-        [BsonElement("GoogleCalendarEventIdg")]
-        public string GoogleCalendarEventId { get; set; }
-
-        public class Builder
+        public void AddContent(string context)
         {
-            private readonly TodoNote _note = new();
+            _note.Content = context;
+        }
 
-            public void AddContent(string context) => _note.Content = context;
-            public void AddEndDate(DateTime endDate) => _note.EndDate = endDate;
-            public void AddName(string name) => _note.Name = name;
-            public void AddStatus(TodoStatus status) => _note.Status = status;
+        public void AddEndDate(DateTime endDate)
+        {
+            _note.EndDate = endDate;
+        }
 
-            public TodoNote Build()
-            {
-                _note.Id = ObjectId.GenerateNewId().ToString();
-                _note.CreationDate = DateTime.UtcNow;
-                _note.Status = _note.Status == TodoStatus.None ? TodoStatus.Waiting : _note.Status;
-                return _note;
-            }
+        public void AddName(string name)
+        {
+            _note.Name = name;
+        }
+
+        public void AddStatus(TodoStatus status)
+        {
+            _note.Status = status;
+        }
+
+        public TodoNote Build()
+        {
+            _note.Id = ObjectId.GenerateNewId().ToString();
+            _note.CreationDate = DateTime.UtcNow;
+            _note.Status = _note.Status == TodoStatus.None ? TodoStatus.Waiting : _note.Status;
+            return _note;
         }
     }
 }

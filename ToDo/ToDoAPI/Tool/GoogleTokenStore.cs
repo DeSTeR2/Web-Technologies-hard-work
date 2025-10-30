@@ -1,6 +1,8 @@
 using MongoDB.Driver;
 using ToDoAPI.Auth;
-using ToDoAPI.Tool;
+using ToDoAPI.Model;
+
+namespace ToDoAPI.Tool;
 
 public class GoogleTokenStore
 {
@@ -15,7 +17,8 @@ public class GoogleTokenStore
 
     public async Task SaveAsync(string userId, TokenResult tokens)
     {
-        var cred = new GoogleCredential {
+        var cred = new GoogleCredential
+        {
             UserId = userId,
             EncryptedRefreshToken = _protector.Protect(tokens.RefreshToken ?? ""),
             EncryptedAccessToken = tokens.AccessToken != null ? _protector.Protect(tokens.AccessToken) : null,
@@ -34,8 +37,13 @@ public class GoogleTokenStore
         return res;
     }
 
-    public string UnprotectRefreshToken(GoogleCredential cred) =>
-        _protector.Unprotect(cred.EncryptedRefreshToken);
-    public string? UnprotectAccessToken(GoogleCredential cred) =>
-        cred.EncryptedAccessToken == null ? null : _protector.Unprotect(cred.EncryptedAccessToken);
+    public string UnprotectRefreshToken(GoogleCredential cred)
+    {
+        return _protector.Unprotect(cred.EncryptedRefreshToken);
+    }
+
+    public string? UnprotectAccessToken(GoogleCredential cred)
+    {
+        return cred.EncryptedAccessToken == null ? null : _protector.Unprotect(cred.EncryptedAccessToken);
+    }
 }

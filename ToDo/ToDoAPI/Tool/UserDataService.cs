@@ -6,9 +6,15 @@ public class UserDataService
 {
     private ClaimsPrincipal user;
 
-    public ClaimsPrincipal GetCurrentUser() => user;
+    public ClaimsPrincipal GetCurrentUser()
+    {
+        return user;
+    }
 
-    public void SetUser(ClaimsPrincipal user) => this.user = user;
+    public void SetUser(ClaimsPrincipal user)
+    {
+        this.user = user;
+    }
 
     public string? GetCurrentUserId()
     {

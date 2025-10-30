@@ -7,12 +7,14 @@ namespace ToDoAPI.API;
 
 [ApiController]
 [Route("api/[controller]")]
-
 public class ApiUserInfo : ControllerBase
 {
     private readonly UserDataService _userDataService;
 
-    public ApiUserInfo(UserDataService userDataService) => _userDataService = userDataService;
+    public ApiUserInfo(UserDataService userDataService)
+    {
+        _userDataService = userDataService;
+    }
 
     [HttpGet]
     [Authorize]

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using ToDoAPI.Model;
 
@@ -19,11 +20,15 @@ public class MongoDbService
         _notes = db.GetCollection<TodoNote>(s.TodoNotesCollection);
     }
 
-    public async Task<List<TodoList>> GetAllListsAsync() =>
-        await (await _lists.FindAsync(_ => true)).ToListAsync();
+    public async Task<List<TodoList>> GetAllListsAsync()
+    {
+        return await (await _lists.FindAsync(_ => true)).ToListAsync();
+    }
 
-    public async Task<List<TodoList>> GetAllListsByUserIdAsync(string? userId) =>
-        await (await _lists.FindAsync(list => list.OwnerId == userId)).ToListAsync();
+    public async Task<List<TodoList>> GetAllListsByUserIdAsync(string? userId)
+    {
+        return await (await _lists.FindAsync(list => list.OwnerId == userId)).ToListAsync();
+    }
 
     public async Task<TodoList> FindListAsync(string id)
     {
@@ -74,7 +79,7 @@ public class MongoDbService
     public async Task<TodoNote> CreateNoteAsync(TodoNote note)
     {
         if (string.IsNullOrWhiteSpace(note.Id))
-            note.Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
+            note.Id = ObjectId.GenerateNewId().ToString();
 
         note.CreationDate ??= DateTime.UtcNow;
 
@@ -158,7 +163,7 @@ public class MongoDbService
         var groups = all.GroupBy(n => new { n.Content, n.CreationDate })
             .Where(g => g.Count() > 1);
 
-        int removed = 0;
+        var removed = 0;
         foreach (var g in groups)
         {
             var keep = g.OrderByDescending(n => n.CreationDate).First();
@@ -169,6 +174,7 @@ public class MongoDbService
                 removed++;
             }
         }
+
         return removed;
     }
 
