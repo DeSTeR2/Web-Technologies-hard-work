@@ -1,3 +1,5 @@
+using ProjectInfrastructure.Utils.Sorting;
+
 namespace ProjectMVC.Utils.Sorting;
 
 public class SortingFactory

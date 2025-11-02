@@ -12,7 +12,7 @@
         font-family: 'Courier New', monospace;
         text-align: left;
     }
-    
+
     .leaderboard-item {
         background-color: #0d0d0d;
         border: 1px solid #555;
@@ -27,11 +27,11 @@
         align-items: center;
         gap: 10px;
     }
-    
+
     .leaderboard-item:hover {
         background-color: #222;
     }
-    
+
     .no-leaderboards-msg {
         font-size: 1.2rem;
         color: #bbb;
@@ -40,7 +40,7 @@
         font-family: 'Courier New', monospace;
         text-shadow: 0 0 3px #666;
     }
-    
+
     .create-leaderboard-btn-inline {
         margin-top: 20px;
         padding: 10px 30px;
@@ -55,12 +55,12 @@
         text-shadow: 0 0 3px #aaa;
         transition: background-color 0.3s ease, border-color 0.3s ease;
     }
-    
+
     .create-leaderboard-btn-inline:hover {
         background-color: #333;
         border-color: #ccc;
     }
-    
+
     .create-leaderboard-btn {
         position: fixed;
         bottom: 20px;
@@ -77,12 +77,12 @@
         transition: background-color 0.3s ease, border-color 0.3s ease;
         z-index: 1000;
     }
-    
+
     .create-leaderboard-btn:hover {
         background-color: #333;
         border-color: #ccc;
     }
-    
+
     h2 {
         font-family: 'Courier New', monospace;
         font-size: 2.5rem;
@@ -91,18 +91,18 @@
         text-shadow: 0 0 5px #fff;
         text-align: center;
     }
-    
+
     h3 {
         font-family: 'Courier New', monospace;
         color: #ddd;
         margin-bottom: 15px;
     }
-    
+
     .board-name {
         flex-grow: 1;
         cursor: default;
     }
-    
+
     .edit-btn,
     .save-btn,
     .cancel-btn,
@@ -118,7 +118,7 @@
         transition: background-color 0.3s ease, border-color 0.3s ease;
         margin-left: 5px;
     }
-    
+
     .edit-btn:hover,
     .save-btn:hover,
     .cancel-btn:hover,
@@ -126,9 +126,41 @@
         background-color: #333;
         border-color: #ccc;
     }
+
+    .pagination {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 16px;
+    }
+    .page-btn, .goto-btn {
+        background-color: #222;
+        color: #ddd;
+        border: 2px solid #888;
+        border-radius: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
+        text-shadow: 0 0 3px #aaa;
+        transition: background-color .3s ease, border-color .3s ease;
+    }
+    .page-btn:hover, .goto-btn:hover {
+        background-color: #333;
+        border-color: #ccc;
+    }
+    .page-btn[disabled] { opacity: .5; cursor: not-allowed; }
+    .page-info { color: #bbb; font-family: 'Courier New', monospace; }
+    .goto-input {
+        width: 70px;
+        background: #111;
+        color: #ddd;
+        border: 1px solid #555;
+        border-radius: 6px;
+        padding: 6px 8px;
+    }
 </style>
 
-@model IEnumerable<ProjectInfrastructure.Models.LeaderboardRecordModel>
+@model ProjectMVC.Controllers.PaginatedResponse<ProjectInfrastructure.Models.LeaderboardRecordModel>
 
 @{
     ViewData["Title"] = "Leaderboard Records";
@@ -137,37 +169,18 @@
 
 <h2>Leaderboard Records</h2>
 
-@if (!Model.Any())
+@if (Model == null || !Model.Data.Any())
 {
     <p class="no-leaderboards-msg">No leaderboard records found.</p>
 }
 else
 {
-    <form name="sortingForm" onsubmit="sortRecords(event)">
-        <input type="hidden" name="leaderboardId" value="@leaderboardId" />
-        <select name="sortOrder" class="create-leaderboard-btn-inline">
-            <option value="Value">Sort by...</option>
-            <option value="Value">Value</option>
-            <option value="Updated">Updated Time</option>
-            <option value="Name">Name</option>
-        </select>
-
-        <select name="sortDirection" class="create-leaderboard-btn-inline">
-            <option value="Descending">Descending</option>
-            <option value="Ascending">Ascending</option>
-        </select>
-
-        <input type="number" name="take" placeholder="Number of records" class="create-leaderboard-btn-inline" min="2"/>
-        <button type="submit" class="create-leaderboard-btn-inline">Sort</button>
-    </form>
-
-
     <div class="records-scroll">
-        <div class="records-wrapper" id ="records-wrapper-id">
-            @foreach (var record in Model)
+        <div class="records-wrapper" id="records-wrapper-id">
+            @foreach (var record in Model.Data)
             {
-                <div class="leaderboard-item">
-                    <span id="record-database-id" style="display: none;">@record.Id</span>
+                <div class="leaderboard-item" data-record-id="@record.Id">
+                    <span class="record-database-id" style="display: none;">@record.Id</span>
                     <span class="record-id">№@record.Place</span>
                     <input type="text" class="edit-name" value="@record.Name" readonly/>
                     <input type="number" class="edit-value" value="@record.Value" readonly/>
@@ -176,6 +189,18 @@ else
                 </div>
             }
         </div>
+    </div>
+
+    <div id="pagination" class="pagination"
+         data-current-page="@Model.Page"
+         data-total-pages="@Model.TotalPages">
+        <button class="page-btn" data-nav="first">« First</button>
+        <button class="page-btn" data-nav="prev">‹ Prev</button>
+        <span class="page-info" id="page-info">Page @Model.Page of @Model.TotalPages</span>
+        <button class="page-btn" data-nav="next">Next ›</button>
+        <button class="page-btn" data-nav="last">Last »</button>
+        <input id="gotoPage" class="goto-input" type="number" min="1" max="@Model.TotalPages" placeholder="Go…"/>
+        <button class="goto-btn" id="gotoBtn">Go</button>
     </div>
 }
 
@@ -226,11 +251,11 @@ else
         border-radius: 8px;
         color: white;
     }
-    
+
     .leaderboard-item.editing {
-    outline: 2px solid #4caf50;
-    background-color: #1e2a1e;
-}
+        outline: 2px solid #4caf50;
+        background-color: #1e2a1e;
+    }
 
     .edit-name, .edit-value {
         background: #333;
@@ -260,6 +285,11 @@ else
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     const leaderboardId = '@leaderboardId';
+    let currentPage = @(Model?.Page ?? 1);
+    let totalPages = @(Model?.TotalPages ?? 1);
+    let currentPageSize = @(Model?.PageSize ?? 10);
+    let currentSortBy = 'Value';
+    let currentSortDirection = 'Descending';
 
     const creationPanel = document.getElementById('creationPanel');
     const openCreatePanelBtn = document.getElementById('openCreatePanelBtn');
@@ -268,50 +298,117 @@ else
     openCreatePanelBtn.addEventListener('click', () => showCreationPanel());
     cancelCreateBtn.addEventListener('click', () => hideCreationPanel());
 
+
+    function loadPage(page) {
+        if (page < 1) page = 1;
+        if (totalPages && page > totalPages) page = totalPages;
+
+        console.log('Loading page:', page);
+
+        $.ajax({
+            url: '/records',
+            method: 'GET',
+            data: {
+                leaderboardId: leaderboardId,
+                page: page,
+                pageSize: currentPageSize
+            },
+            success: function (response) {
+                console.log('Response:', response);
+
+
+                const records = response.data || response.Data || [];
+                currentPage = response.page || response.Page || page;
+                totalPages = response.totalPages || response.TotalPages || totalPages || 1;
+                currentPageSize = response.pageSize || response.PageSize || currentPageSize;
+
+                renderRecords(records);
+                updatePagerUI();
+            },
+            error: function (xhr) {
+                console.error('Error:', xhr);
+                showMessage("Error loading page: " + (xhr.responseText || xhr.statusText));
+            }
+        });
+    }
+
+
+    function renderRecords(records) {
+        const recordContainer = $('#records-wrapper-id');
+        recordContainer.empty();
+
+        if (!records || records.length === 0) {
+            recordContainer.append('<p class="no-leaderboards-msg">No records found.</p>');
+            return;
+        }
+
+        records.forEach(record => {
+
+            const id = record.id || record.Id;
+            const place = record.place || record.Place;
+            const name = record.name || record.Name;
+            const value = record.value || record.Value;
+
+            recordContainer.append(`
+                <div class="leaderboard-item" data-record-id="${id}">
+                    <span class="record-database-id" style="display:none;">${id}</span>
+                    <span class="record-id">№${place}</span>
+                    <input type="text" class="edit-name" value="${escapeHtml(name)}" readonly />
+                    <input type="number" class="edit-value" value="${value}" readonly />
+                    <button class="edit-btn edit-toggle">Edit</button>
+                    <button class="save-btn" style="display:none;">Save</button>
+                </div>
+            `);
+        });
+    }
+
+
+    function updatePagerUI() {
+        $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+        $('#gotoPage').attr('max', totalPages);
+
+        $('[data-nav="first"]').prop('disabled', currentPage <= 1);
+        $('[data-nav="prev"]').prop('disabled', currentPage <= 1);
+        $('[data-nav="next"]').prop('disabled', currentPage >= totalPages);
+        $('[data-nav="last"]').prop('disabled', currentPage >= totalPages);
+    }
+
+
     function sortRecords(event) {
         event.preventDefault();
 
         const form = document.forms['sortingForm'];
-        const leaderboardId = form.leaderboardId.value;
-        const sortBy = form.sortOrder.value;
-        const direction = form.sortDirection.value;
-        const take = form.take.value ? parseInt(form.take.value) : null;
+        currentSortBy = form.sortOrder.value || 'Value';
+        currentSortDirection = form.sortDirection.value || 'Descending';
+
+        console.log('Sorting by:', currentSortBy, currentSortDirection);
 
         $.ajax({
-            url: '@(Url.Action("UpdatePositions", "Record"))',
-            method: 'PATCH',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                LeaderboardId: leaderboardId,
-                SortBy: sortBy,
-                Direction: direction,
-                Take: take
-            }),
-            success: function (records) {
-                const recordContainer = $('#records-wrapper-id');
-                recordContainer.empty();
-                records.forEach(record => {
-                    recordContainer.append(`
-                        <div class="leaderboard-item">
-                            <span style="display:none;">${record.id}</span>
-                            <span class="record-id">№${record.place}</span>
-                            <input type="text" class="edit-name" value="${record.name}" readonly />
-                            <input type="number" class="edit-value" value="${record.value}" readonly />
-                            <button class="edit-btn">Edit</button>
-                            <button class="save-btn" style="display:none;">Save</button>
-                        </div>
-                    `);
-                });
+            url: '/records',
+            method: 'GET',
+            data: {
+                leaderboardId: leaderboardId,
+                page: 1,
+                pageSize: currentPageSize
             },
-            error: function(xhr) {
-                showMessage("Error: " + xhr.responseText);
+            success: function (response) {
+                console.log('Sort response:', response);
+
+                const records = response.data || response.Data || [];
+                currentPage = 1;
+                totalPages = response.totalPages || response.TotalPages || 1;
+
+                renderRecords(records);
+                updatePagerUI();
+            },
+            error: function (xhr) {
+                console.error('Sort error:', xhr);
+                showMessage("Error sorting: " + (xhr.responseText || xhr.statusText));
             }
         });
 
         return false;
     }
-
-
 
 
     function showCreationPanel() {
@@ -329,8 +426,10 @@ else
     $('#addRecordBtn').on('click', function(e) {
         e.preventDefault();
         clearMessage();
+
         const name = $('#newName').val().trim();
         const value = parseInt($('#newValue').val());
+
         if (!name) {
             showMessage("Name is required.");
             return;
@@ -339,12 +438,14 @@ else
             showMessage("Score must be a number.");
             return;
         }
+
         const newRecord = {
             Name: name,
             Value: value,
             LeaderboardId: leaderboardId,
             Id: ''
         };
+
         $.ajax({
             url: `/records/${encodeURIComponent(leaderboardId)}`,
             method: 'POST',
@@ -354,65 +455,109 @@ else
             success: function() {
                 showMessage("Record added successfully!", true);
                 clearCreationForm();
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(() => {
+                    hideCreationPanel();
+                    loadPage(currentPage);
+                }, 1000);
             },
             error: function(xhr) {
-                showMessage("Error: " + xhr.responseText);
+                showMessage("Error: " + (xhr.responseText || xhr.statusText));
             }
         });
     });
 
-    $(document).ready(function () {
-        $('.edit-toggle').on('click', function () {
-            const container = $(this).closest('.leaderboard-item');
-            container.addClass('editing');
-            container.find('.edit-name, .edit-value').prop('readonly', false).addClass('editable');
-            container.find('.save-btn').show();
-            $(this).hide();
-        });
 
-        $('.save-btn').on('click', function () {
-            const container = $(this).closest('.leaderboard-item');
-            const id = container.find('.record-database-id').text().trim();
-            const name = container.find('.edit-name').val().trim();
-            const value = parseInt(container.find('.edit-value').val());
+    $(document).on('click', '.edit-toggle', function () {
+        const container = $(this).closest('.leaderboard-item');
+        container.addClass('editing');
+        container.find('.edit-name, .edit-value').prop('readonly', false).addClass('editable');
+        container.find('.save-btn').show();
+        $(this).hide();
+    });
 
-            if (!name) {
-                alert("Name is required.");
-                return;
+    $(document).on('click', '.save-btn', function () {
+        const container = $(this).closest('.leaderboard-item');
+        const id = container.find('.record-database-id').text().trim() || container.data('record-id');
+        const name = container.find('.edit-name').val().trim();
+        const value = parseInt(container.find('.edit-value').val());
+
+        if (!name) {
+            alert("Name is required.");
+            return;
+        }
+        if (isNaN(value)) {
+            alert("Score must be a number.");
+            return;
+        }
+
+        const updatedRecord = {
+            Id: id,
+            Name: name,
+            Value: value,
+            LeaderboardId: leaderboardId
+        };
+
+        console.log('Updating record:', updatedRecord);
+
+        $.ajax({
+            url: '/records',
+            method: 'PUT',
+            contentType: 'application/json',
+            headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+            data: JSON.stringify(updatedRecord),
+            success: function () {
+                container.removeClass('editing');
+                container.find('.edit-name, .edit-value').prop('readonly', true).removeClass('editable');
+                container.find('.edit-toggle').show();
+                container.find('.save-btn').hide();
+                alert('Record updated successfully!');
+            },
+            error: function (xhr) {
+                console.error('Update error:', xhr);
+                alert("Error: " + (xhr.responseText || xhr.statusText));
             }
-            if (isNaN(value)) {
-                alert("Score must be a number.");
-                return;
-            }
-
-            const updatedRecord = {
-                Id: id,
-                Name: name,
-                Value: value,
-                LeaderboardId: leaderboardId
-            };
-
-            console.log(updatedRecord);
-
-            $.ajax({
-                url: `/records/${id}`,
-                method: 'PUT',
-                contentType: 'application/json',
-                headers: { 'RequestVerificationToken': getRequestVerificationToken() },
-                data: JSON.stringify(updatedRecord),
-                success: function () {
-                    container.removeClass('editing');
-                    container.find('.edit-name, .edit-value').prop('readonly', true).removeClass('editable');
-                    container.find('.edit-toggle').show();
-                    container.find('.save-btn').hide();
-                },
-                error: function (xhr) {
-                    alert("Error: " + xhr.responseText);
-                }
-            });
         });
     });
+
+
+    $(document).on('click', '.page-btn', function () {
+        const nav = $(this).data('nav');
+        console.log('Navigation clicked:', nav);
+
+        if ($(this).prop('disabled')) {
+            return;
+        }
+
+        if (nav === 'first') {
+            loadPage(1);
+        } else if (nav === 'prev') {
+            loadPage(currentPage - 1);
+        } else if (nav === 'next') {
+            loadPage(currentPage + 1);
+        } else if (nav === 'last' && totalPages) {
+            loadPage(totalPages);
+        }
+    });
+
+    $('#gotoBtn').on('click', function () {
+        const p = parseInt($('#gotoPage').val());
+        console.log('Go to page:', p);
+
+        if (!isNaN(p) && p >= 1 && p <= totalPages) {
+            loadPage(p);
+        } else {
+            alert(`Please enter a page number between 1 and ${totalPages}`);
+        }
+    });
+
+
+    $('#gotoPage').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#gotoBtn').click();
+        }
+    });
+
 
     function showMessage(msg, success = false) {
         const msgElem = document.getElementById('creationMessage');
@@ -425,12 +570,31 @@ else
     }
 
     function clearCreationForm() {
-        document.getElementById('newName').value = '';
-        document.getElementById('newValue').value = '';
+        $('#newName').val('');
+        $('#newValue').val('');
     }
 
     function getRequestVerificationToken() {
         const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
         return tokenInput ? tokenInput.value : '';
     }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"'`=\/]/g, s => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '/': '&#x2F;',
+            '`': '&#x60;',
+            '=': '&#x3D;'
+        }[s]));
+    }
+
+
+    $(document).ready(function() {
+        console.log('Page loaded. Current page:', currentPage, 'Total pages:', totalPages);
+        updatePagerUI();
+    });
 </script>

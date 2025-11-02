@@ -98,7 +98,7 @@
         text-shadow: 0 0 5px #fff;
         text-align: center;
     }
-    
+
     .board-name {
         flex-grow: 1;
         cursor: default;
@@ -154,7 +154,7 @@
     $(document).ready(function () {
         try {
             const leaderboards = @Html.Raw(ViewBag.Leaderboards ?? "[]");
-            
+
             console.log("Leaderboards:", leaderboards);
             console.log("Type of leaderboards:", typeof leaderboards);
             console.log("Is array:", Array.isArray(leaderboards));
@@ -181,8 +181,8 @@
                     </div>
                 `);
                 return;
-            } 
-            
+            }
+
             leaderboards.forEach(board => {
                 container.append(renderLeaderboardItem(board));
             });
@@ -213,10 +213,10 @@
         }
     }
 
-function manageLeaderboard(id) {
-    var url = '/records/index?leaderboardId=' + encodeURIComponent(id);
-    window.location.href = url;
-}
+    function manageLeaderboard(id) {
+        var url = '/records/index?leaderboardId=' + id + '&page=1&pageSize=10';
+        window.location.href = url;
+    }
 
 
 
@@ -300,7 +300,7 @@ function manageLeaderboard(id) {
                 success: function (updated) {
                     try {
                         item.find('.board-name').text(newName);
-                        cancelEdit(button); 
+                        cancelEdit(button);
                         alert('Leaderboard updated!');
                     } catch (err) {
                         alert("Error in AJAX success (saveEdit):\n" + err.message + "\n" + err.stack);

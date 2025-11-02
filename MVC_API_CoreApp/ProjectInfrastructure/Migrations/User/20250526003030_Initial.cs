@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ProjectInfrastructure.Migrations.User
 {
-    /// <inheritdoc />
+    
     public partial class Initial : Migration
     {
-        /// <inheritdoc />
+        
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -237,7 +237,7 @@ namespace ProjectInfrastructure.Migrations.User
                 column: "LeaderboardId");
         }
 
-        /// <inheritdoc />
+        
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

@@ -1,7 +1,7 @@
 using ProjectInfrastructure.Models;
-using ProjectMVC.Controllers;
+using ProjectMVC.Utils.Sorting;
 
-namespace ProjectMVC.Utils.Sorting;
+namespace ProjectInfrastructure.Utils.Sorting;
 
 public abstract class SortingStrategy
 {

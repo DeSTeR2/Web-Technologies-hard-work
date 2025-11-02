@@ -10,23 +10,7 @@ using ProjectMVC.Utils.Extensions;
 
 namespace ProjectMVC.Controllers;
 
-/*
- /Leaderboards  - all collection
-    get - get all    (query)
-    post - upload    (body)
-    delete - delete all  (query)
-    put - replace (body)
 
-  /Leaderboards/{id} - item
-    get - get by id  (query)
-    patch - update by id (body)
-    delete - delete by id (query)
-
-
-    Records!
-    get - /Leaderboards/{id}/{recordId} (query)
-
- */
 
 [Route("leaderboards")]
 [ApiController]

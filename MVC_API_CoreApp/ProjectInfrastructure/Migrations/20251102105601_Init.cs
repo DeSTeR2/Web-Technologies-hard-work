@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace ProjectInfrastructure.Migrations.User
+namespace ProjectInfrastructure.Migrations
 {
     
-    public partial class TestMigratiom : Migration
+    public partial class Init : Migration
     {
         
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -1,4 +1,5 @@
 using ProjectInfrastructure.Models;
+using ProjectInfrastructure.Utils.Sorting;
 
 namespace ProjectMVC.Utils.Sorting;
 

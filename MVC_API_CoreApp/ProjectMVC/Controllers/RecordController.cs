@@ -2,8 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectInfrastructure.Context;
 using ProjectInfrastructure.Models;
-using ProjectMVC.Models;
-using ProjectMVC.Models.Requests;
+using ProjectInfrastructure.Utils.Sorting;
 using ProjectMVC.Utils.Errors;
 using ProjectMVC.Utils.Extensions;
 using ProjectMVC.Utils.Sorting;
@@ -22,7 +21,7 @@ public class RecordController : Controller
     }
 
     [HttpGet("index")]
-    public async Task<IActionResult> Index(string leaderboardId)
+    public async Task<IActionResult> Index(string leaderboardId, int page = 1, int pageSize = 10)
     {
         ViewData["LeaderboardId"] = leaderboardId;
         var leaderboard = await _leaderboardDbContext.FindLeaderboardAsync(leaderboardId);
@@ -32,8 +31,8 @@ public class RecordController : Controller
             return BadRequest(new LeaderboardError().Error(leaderboardId));
         }
 
-        var records = UpdatePositions(leaderboardId).Result;
-        return View(records);
+        var paginatedRecords = await GetPaginatedRecords(leaderboardId, page, pageSize);
+        return View(paginatedRecords);
     }
 
 
@@ -44,7 +43,8 @@ public class RecordController : Controller
             LeaderboardId = leaderboardId,
             SortBy = SortingParameter.Value,
             Direction = SortingType.Descending,
-            Take = 10
+            Page = 1,
+            PageSize = 10
         });
     }
 
@@ -100,7 +100,7 @@ public class RecordController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetRecords(string leaderboardId)
+    public async Task<IActionResult> GetRecords(string leaderboardId, int page = 1, int pageSize = 10)
     {
         var leaderboard = await _leaderboardDbContext.FindLeaderboardAsync(leaderboardId);
 
@@ -109,8 +109,8 @@ public class RecordController : Controller
             return BadRequest(new LeaderboardError().Error(leaderboardId));
         }
 
-        var records = UpdatePositions(leaderboardId).Result;
-        return Ok(records);
+        var paginatedRecords = await GetPaginatedRecords(leaderboardId, page, pageSize);
+        return Ok(paginatedRecords);
     }
 
     [HttpPost("{leaderboardId}")]
@@ -119,7 +119,7 @@ public class RecordController : Controller
         record.LeaderboardId = leaderboardId;
         record.Place = -1;
         record.Id = Guid.NewGuid().ToString();
-    
+
         var leaderboard = await _leaderboardDbContext.FindLeaderboardAsync(leaderboardId);
         if (leaderboard is null)
         {
@@ -127,7 +127,7 @@ public class RecordController : Controller
         }
 
         leaderboard.AddRecord(record);
-    
+
         _leaderboardDbContext.LeaderboardsRecords.Add(record);
         _leaderboardDbContext.Leaderboards.Update(leaderboard);
         await _leaderboardDbContext.SaveChangesAsync();
@@ -145,7 +145,7 @@ public class RecordController : Controller
         {
             return BadRequest(new RecordError().Error(recordId));
         }
-        
+
         string leaderboardId = record.LeaderboardId;
 
         var leaderboard = await _leaderboardDbContext.FindLeaderboardAsync(leaderboardId);
@@ -155,6 +155,54 @@ public class RecordController : Controller
         await _leaderboardDbContext.SaveChangesAsync();
 
         return Ok(leaderboard);
+    }
+
+    private async Task<PaginatedResponse<LeaderboardRecordModel>> GetPaginatedRecords(
+        string leaderboardId,
+        int page = 1,
+        int pageSize = 10,
+        SortingParameter sortBy = SortingParameter.Value,
+        SortingType direction = SortingType.Descending)
+    {
+        var request = new UpdatePositionsRequest
+        {
+            LeaderboardId = leaderboardId,
+            Page = page,
+            PageSize = pageSize,
+            SortBy = sortBy,
+            Direction = direction,
+            Take = pageSize
+        };
+
+        var leaderboard = await _leaderboardDbContext.FindLeaderboardAsync(leaderboardId);
+
+        if (leaderboard == null)
+            throw new Exception("Leaderboard not found");
+
+        IEnumerable<LeaderboardRecordModel> records = leaderboard.Records;
+
+        var totalCount = records.Count();
+        var sortingStrategy = new SortingFactory().GetStrategy(request.SortBy, request.Direction);
+
+        var sortedList = records.ToList();
+        sortingStrategy.Sort(sortedList);
+
+        
+        for (var i = 0; i < sortedList.Count; i++)
+            sortedList[i].Place = i + 1;
+
+        
+        var paginatedList = sortedList
+            .Skip(request.Skip)
+            .Take(request.Take)
+            .ToList();
+
+        return new PaginatedResponse<LeaderboardRecordModel>(
+            paginatedList,
+            page,
+            pageSize,
+            totalCount
+        );
     }
 
     private async Task<List<LeaderboardRecordModel>> GetSortedRecordsAsync(UpdatePositionsRequest request)
@@ -174,8 +222,7 @@ public class RecordController : Controller
         var sortedList = records.ToList();
         sortingStrategy.Sort(sortedList);
 
-        if (request.Take.HasValue)
-            sortedList = sortedList.Take(request.Take.Value).ToList();
+        sortedList = sortedList.Skip(request.Skip).Take(request.PageSize).ToList();
 
         for (int i = 0; i < sortedList.Count; i++)
             sortedList[i].Place = i + 1;
@@ -183,10 +230,30 @@ public class RecordController : Controller
         return sortedList;
     }
 
-    
+
     private async Task<LeaderboardRecordModel?> FindRecordAsync(string id)
     {
         return await _leaderboardDbContext.LeaderboardsRecords
             .FirstOrDefaultAsync(r => r.Id == id);
+    }
+}
+
+public class PaginatedResponse<T>
+{
+    public List<T> Data { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalCount { get; set; }
+    public int TotalPages { get; set; }
+    public bool HasPreviousPage => Page > 1;
+    public bool HasNextPage => Page < TotalPages;
+
+    public PaginatedResponse(List<T> data, int page, int pageSize, int totalCount)
+    {
+        Data = data;
+        Page = page;
+        PageSize = pageSize;
+        TotalCount = totalCount;
+        TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
     }
 }

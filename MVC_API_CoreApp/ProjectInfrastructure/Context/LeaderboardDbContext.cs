@@ -44,7 +44,7 @@ public partial class LeaderboardDbContext : IdentityDbContext<User>
             .Property(r => r.Value)
             .IsRequired();
 
-        // Fix for NormalizedUserName
+        
         modelBuilder.Entity<User>(b =>
         {
             b.Property(u => u.NormalizedUserName)
