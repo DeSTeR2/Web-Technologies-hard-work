@@ -10,10 +10,9 @@ using ProjectMVC.Utils.Extensions;
 
 namespace ProjectMVC.Controllers;
 
-
-
 [Route("leaderboards")]
 [ApiController]
+// triger ci/cd
 public class LeaderboardsController : ODataController
 {
     private readonly LeaderboardDbContext _leaderboardDbContext;
@@ -33,9 +32,9 @@ public class LeaderboardsController : ODataController
         if (!string.IsNullOrEmpty(userId))
         {
             leaderboards = await _leaderboardDbContext.Leaderboards.Where(l => l.UserId == userId).ToListAsync();
-        } else 
+        } else
             leaderboards = await _leaderboardDbContext.Leaderboards.ToListAsync();
-        
+
         return Ok(leaderboards);
     }
 
@@ -45,7 +44,7 @@ public class LeaderboardsController : ODataController
         try
         {
             var user = await _userManager.GetUserAsync(User);
-        
+
             if (leaderboard == null)
             {
                 leaderboard = new LeaderboardModel();
